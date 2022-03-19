@@ -4,7 +4,7 @@
   "description": "backend store",
   "main": "index.js",
   "scripts": {
-    "start" :"nodemon app.js"
+    "start": "nodemon app.js"
   },
   "author": "ashkan",
   "license": "ISC",
