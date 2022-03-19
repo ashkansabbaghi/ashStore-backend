@@ -1,6 +1,9 @@
-const product = [
-    {id: "1", title: 'product 1' , price: "12"},
-    {id: "2", title: 'product 2' , price: "10"},
-]
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
-module.exports = product
+const productSchema = new Schema({
+    title : {type: String,required: true},
+    price : {type: Number,required: true}
+})
+
+module.exports =mongoose.model('Product', productSchema)
