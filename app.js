@@ -1,18 +1,18 @@
 const express = require('express')
 const app = express()
+require('dotenv').config() //.env
 
-//variable
-const port = 8000
+const PORT = process.env.PORT || 8080;
 
 const productRoutes = require('./src/routes/product-routes')
-const Connections = require('./src/db/connections/mongodb')
+const MongoDB = require('./src/db/connections/mongodb')
 
 app.use(express.json()) // before routes
 app.use('/api', productRoutes)
 
-Connections.connections
+MongoDB.connections
     .then(
-        app.listen(port, () => {
-            console.log(`port : http://localhost:${port}`)
+        app.listen(PORT, () => {
+            console.log(`port : ${process.env.URL}${PORT}`)
         }))
     .catch((e) => console.log(e))
