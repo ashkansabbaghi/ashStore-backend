@@ -5,17 +5,25 @@ const getAllProducts = (req, res, next) => {
 }
 
 const getSingleProduct = (req, res, next) => {
-    const product = products.find((item) => item.id === req.params.id);
-    console.log(product)
-    res.json(product);
-
+    res.json(products.find((item) => item.id === req.params.id));
 }
 
 const addProduct = (req, res, next) => {
-    const {id ,title , price } = req.body
+    const {
+        id,
+        title,
+        price
+    } = req.body
 
-    const newProduct  = {id : id, title : title, price : price}
-    res.json({message : "product Created"})
+    const newProduct = {
+        id: id,
+        title: title,
+        price: price
+    }
+    res.json({
+        message: "product Created",
+        product: newProduct
+    })
 }
 
 exports.getAllProducts = getAllProducts
