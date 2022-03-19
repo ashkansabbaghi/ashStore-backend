@@ -1,26 +1,31 @@
-const products = require('../models/products')
+const Products = require('../models/products')
 
-const getAllProducts = (req, res, next) => {
-    res.json(products)
+const getAllProducts = async (req, res, next) => {
+    const listProducts = await Products.find().exec()
+    res.json(listProducts)
 }
 
-const getSingleProduct = (req, res, next) => {
-    res.json(products.find((item) => item.id === req.params.id));
+const getSingleProduct = async (req, res, next) => {
+
+    const id = req.params.id
+    const product = await Products.findById(id)
+    res.json(product)
 }
 
-const addProduct = (req, res, next) => {
+const addProduct = async (req, res, next) => {
     const {
-        id,
         title,
         price
     } = req.body
 
-    const newProduct = {
-        id: id,
+    const newProduct = new Products({
         title: title,
         price: price
-    }
-    res.json({
+    })
+
+    await newProduct.save()
+
+    res.status(201).json({
         message: "product Created",
         product: newProduct
     })
