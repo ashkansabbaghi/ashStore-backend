@@ -1,16 +1,16 @@
 const express = require('express')
 const app = express()
-const mongoose = require('mongoose')
 
 //variable
 const port = 8000
 
-const productRoutes = require('./routes/product-routes')
+const productRoutes = require('./src/routes/product-routes')
+const Connections = require('./src/db/connections/mongodb')
 
 app.use(express.json()) // before routes
 app.use('/api', productRoutes)
 
-mongoose.connect("mongodb://127.0.0.1:27017/ashstore")
+Connections.connections
     .then(
         app.listen(port, () => {
             console.log(`port : http://localhost:${port}`)
