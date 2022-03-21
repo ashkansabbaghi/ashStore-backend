@@ -64,8 +64,29 @@ const login = async (req, res) => {
             ...customUser
         } = user._doc //remove (password ans isAdmin) from user
 
-        res.status(200).json({...customUser,token :accessToken })
+        res.status(200).json({
+            ...customUser,
+            token: accessToken
+        })
 
+    } catch (e) {
+        res.status(500).json(e)
+    }
+}
+
+//UPDATE USER
+const updateUser = async (req, res) => {
+    if (req.body.password) {
+        req.body.password = CryptoJS.AES.encrypt(req.body.password, process.env.PASS_SEC).toString()
+    }
+
+    try {
+        const updateUser = await User.findByIdAndUpdate(req.params.id, {
+            $set: req.body
+        }, {
+            new: true
+        });
+        res.status(200).json(updateUser);
     } catch (e) {
         res.status(500).json(e)
     }
@@ -73,3 +94,4 @@ const login = async (req, res) => {
 
 exports.register = register
 exports.login = login
+exports.updateUser = updateUser
