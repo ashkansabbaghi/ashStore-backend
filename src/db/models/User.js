@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
     genders: {
         type: String,
         enum: ["man", "women", "diff"],
-        required: [true, "Please specify user role"]
+        // required: [true, "Please specify user role"]
     },
     email: {
         type: String,
@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
     },
     phone: {
-        type: Number,
+        type: Number && String,
         required: true,
     }
 
