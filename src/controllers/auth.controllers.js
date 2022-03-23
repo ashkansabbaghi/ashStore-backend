@@ -3,7 +3,6 @@ const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-
 //TODO: bcrypt (hash pass)
 //TODO: : https://www.npmjs.com/package/passport
 
@@ -27,7 +26,6 @@ const register = async (req, res) => {
       username,
       phone,
       email: email.toLowerCase(),
-      // password: CryptoJS.AES.encrypt(password, process.env.PASS_SEC).toString(),
       salt,
       hashedPassword,
     });
@@ -49,13 +47,6 @@ const login = async (req, res) => {
 
     if (!user) return res.status(401).json("Wrong Credentials !"); //check existing user
 
-    // const hashedPass = CryptoJS.AES.decrypt(
-    //   user.password,
-    //   process.env.PASS_SEC
-    // );
-    // const OrgPassword = hashedPass.toString(CryptoJS.enc.Utf8);
-
-    // if (OrgPassword !== req.body.password) return res.status(401).json("Wrong Credentials !"); //check existing user
     if (!bcrypt.compareSync(req.body.password, user.hashedPassword))
       return res.status(401).json("Wrong Credentials !"); //check existing user
 
@@ -70,17 +61,19 @@ const login = async (req, res) => {
       }
     );
 
-    const { hashedPassword, salt, __v, isAdmin, _id, ...customUser } =
-      user._doc; //remove (password ans isAdmin) from user
-    customUser.userId = user._id;
+    // const { hashedPassword, salt, __v, isAdmin, _id, ...customUser } =
+    //   user._doc; //remove (password ans isAdmin) from user
+    // customUser.userId = user._id;
+    // return res.status(200).json({
+    //   ...customUser,
+    //   token: accessToken,
+    // });
+    const cUser = user.sendUserModel();
+    console.log(cUser);
     return res.status(200).json({
-      ...customUser,
+      cUser,
       token: accessToken,
     });
-    // return res.status(200).json({
-    //     ...user.sendUserModel(),
-    //     token: accessToken,
-    //   });
   } catch (e) {
     console.log(e);
     return res.status(500).json(e);
