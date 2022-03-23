@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema(
     isAdmin: { type: Boolean, default: false },
     username: {
       type: String,
+      lowercase: true,
       required: true,
       unique: true,
     },
@@ -20,7 +21,6 @@ const UserSchema = new mongoose.Schema(
     genders: {
       type: String,
       enum: ["man", "women", "diff"],
-      // required: [true, "Please specify user role"]
     },
     email: {
       type: String,
@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       required: [true, "email not provided"],
       validate: {
-        validator: function (v) {
+        validator: (v) => {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: "{VALUE} is not a valid email!",
@@ -46,15 +46,14 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+UserSchema.methods.sendUserModel = () => {
+  return {
+    userId: this._id,
+    username: this.username,
+    phone: this.phone,
+    email: this.email,
+    // createdAt: this.createdAt,
+    // updatedAt: this.updatedAt,
+  };
+};
 module.exports = mongoose.model("User", UserSchema);
-
-// UserSchema.methods.sendUserModel = () => {
-//   return {
-//     userId: this._id,
-//     username: this.username,
-//     phone: this.phone,
-//     email: this.email,
-//     createdAt: this.createdAt,
-//     updatedAt: this.updatedAt,
-//   };
-// };
