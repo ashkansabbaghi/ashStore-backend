@@ -1,6 +1,5 @@
 const User = require("../db/models/User.models");
-const CryptoJS = require("crypto-js");
-const jwt = require("jsonwebtoken");
+// const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 //TODO: bcrypt (hash pass)
@@ -15,13 +14,15 @@ const register = async (req, res) => {
       return res.status(400).json("All input is required"); // check empty input
 
     if (await User.findOne({ username }))
-      return res.status(409).json("This username exists !"); // ! return & try/catch
+      return res.status(409).json("This username exists !"); // exists username
 
     if (await User.findOne({ email }))
-      return res.status(409).json("There is a user with this email !");
+      return res.status(409).json("There is a user with this email !"); // exists email
+
 
     const salt = bcrypt.genSaltSync(+process.env.SALT_ROUND);
     const hashedPassword = bcrypt.hashSync(password, salt);
+
     const newUser = new User({
       username,
       phone,
@@ -30,8 +31,9 @@ const register = async (req, res) => {
       hashedPassword,
     });
 
+    const accessToken = newUser.generateToken()
     const saveUser = await newUser.save();
-    return res.status(201).json(saveUser);
+    return res.status(201).json({ ...saveUser.sendUserModel(),accessToken });
   } catch (e) {
     console.log(e);
     return res.status(500).json(e);
@@ -48,30 +50,11 @@ const login = async (req, res) => {
     if (!user) return res.status(401).json("Wrong Credentials !"); //check existing user
 
     if (!bcrypt.compareSync(req.body.password, user.hashedPassword))
-      return res.status(401).json("Wrong Credentials !"); //check existing user
+      return res.status(401).json("Wrong Credentials !"); //check password
 
-    const accessToken = jwt.sign(
-      {
-        id: user._id,
-        isAdmin: user.isAdmin,
-      },
-      process.env.TOKEN_SEC,
-      {
-        expiresIn: "3d",
-      }
-    );
-
-    // const { hashedPassword, salt, __v, isAdmin, _id, ...customUser } =
-    //   user._doc; //remove (password ans isAdmin) from user
-    // customUser.userId = user._id;
-    // return res.status(200).json({
-    //   ...customUser,
-    //   token: accessToken,
-    // });
-    const cUser = user.sendUserModel();
-    console.log(cUser);
+    const accessToken = user.generateToken()
     return res.status(200).json({
-      cUser,
+      ...user.sendUserModel(),
       token: accessToken,
     });
   } catch (e) {
