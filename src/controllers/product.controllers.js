@@ -15,7 +15,6 @@ const getSingleProduct = async (req, res, next) => {
 const createProduct = async (req, res, next) => {
   //   const { name, desc, unit, price, startAt, endAt } = req.body;
   const { ...params } = req.body;
-  console.log(params);
   const newProduct = new Products({ ...params });
 
   try {
