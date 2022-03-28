@@ -1,8 +1,8 @@
 const router = require("express").Router();
 const Controllers = require("../controllers");
-const { verifyToken } = require("../middlewares/verifyToken.middlewares");
+const { verifyToken, verifyAdmin } = require("../middlewares/verifyToken.middlewares");
 // User
-router.route("/").get(Controllers.Users.getAllUsers); //verify admin
+router.route("/").get(verifyAdmin,Controllers.Users.getAllUsers); //verify admin
 router
   .route("/info/:id")
   .get(verifyToken, Controllers.Users.getUser)
@@ -10,7 +10,7 @@ router
   .delete(verifyToken, Controllers.Users.deleteUser);
 
 // Address
-router.route("/address").get(Controllers.Address.getAllAddress); //verify admin
+router.route("/address").get(verifyAdmin,Controllers.Address.getAllAddress); //verify admin
 router
   .route("/address/:id")
   .get(verifyToken, Controllers.Address.getListUserAddress)
