@@ -2,15 +2,16 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const jwt = require("jsonwebtoken");
 
-
 const UserSchema = new Schema(
   {
-    addresses: [{ type: Schema.Types.ObjectId, ref: "Address" }],
+    addresses: [{ type: Schema.Types.ObjectId, ref: "Address" }], // one to many
+    discount: { type: mongoose.Schema.Types.ObjectId, ref: "Discount" }, // one to one
+    /* **************************** */
     isAdmin: { type: Boolean, default: false },
     username: { type: String, lowercase: true, required: true, unique: true },
     salt: { type: String, required: true },
     hashedPassword: { type: String, required: true },
-    genders: { type: String, enum: ["man", "women", "diff"] },
+    genders: { type: String, enum: ["man", "women", "diff"],default:"man" },
     email: {
       type: String,
       unique: [true, "email already exists in database!"],
@@ -24,13 +25,20 @@ const UserSchema = new Schema(
         message: "{VALUE} is not a valid email!",
       },
     },
-    image: { type: String },
+    image: { type: String  , default:"/"},
     phone: { type: Number && String, required: true },
     userStatus: {
       type: String,
       enum: ["active", "blocked", "banned"],
       default: "active",
     },
+    role: {
+      type: String,
+      required: true,
+      enum: ["admin", "seller", "customer"],
+      default: "customer",
+    },
+    codeSeller: { type: Number },
   },
   { timestamps: true }
 );

@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 
 const addressSchema = new Schema(
   {
+    user : {type : mongoose.Schema.Types.ObjectId, ref: "User"},
     country: { type: String, default: "iran" },
     state: { type: String },
     city: { type: String },

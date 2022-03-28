@@ -1,6 +1,6 @@
 const User = require("../db/models/User.models");
-const Customer = require("../db/models/Customer.models");
-const Seller = require("../db/models/Seller.models");
+// const Customer = require("../db/models/Customer.models");
+// const Seller = require("../db/models/Seller.models");
 // const jwt = require("jsonwebtoken");
 const Bcrypt = require("bcrypt");
 
@@ -46,23 +46,45 @@ const login = async (req, res) => {
 };
 
 // Register customer
-const registerCustomer = async (req, res) => {
-  try {
-    // const { username, email, password, phone } = req.body;
-    const notValid = await ValidInput(req.body);
-    if (notValid) return res.status(notValid.status).json(notValid.msg);
+// const registerCustomer = async (req, res) => {
+//   try {
+//     const notValid = await ValidInput(req.body);
+//     if (notValid) return res.status(notValid.status).json(notValid.msg);
 
-    const createUser = await CreateUser(req.body);
-    const token = createUser.token;
-    const customer = await CreateCustomer(createUser.user.id);
-    const c = await Customer.findById(customer.id, token).populate("user");
-    return res.status(201).json({ customer: c, token });
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json(e);
-  }
-};
+//     const createUser = await CreateUser(req.body);
+//     const token = createUser.token;
+//     const customer = await CreateCustomer(createUser.user.id);
+//     const c = await Customer.findById(customer.id, token).populate("user");
+//     return res.status(201).json({ customer: c, token });
+//   } catch (e) {
+//     console.log(e);
+//     return res.status(500).json(e);
+//   }
+// };
 
+// // login customer
+// const loginCustomer = async (req, res) => {
+//   try {
+//     console.log(req.body.email);
+//     const customer = await Customer.findOne({ 'user.email': req.body.email })
+//     .populate("user");
+//     console.log(customer);
+
+//     if (!customer) return res.status(401).json("Wrong Credentials !"); //check existing user
+
+//     if (!Bcrypt.compareSync(req.body.password, customer.hashedPassword))
+//       return res.status(401).json("Wrong Credentials !"); //check password
+
+//     const accessToken = customer.generateToken();
+//     return res.status(200).json({
+//       customer,
+//       token: accessToken,
+//     });
+//   } catch (e) {
+//     console.log(e);
+//     return res.status(500).json(e);
+//   }
+// };
 /* *********** not exports ************* */
 
 const ValidInput = async (body) => {
@@ -93,13 +115,12 @@ const CreateUser = async (body) => {
   return { token, user };
 };
 
-const CreateCustomer = async (userId) => {
-  const newCustomer = await Customer.create({ user: userId });
-  return newCustomer;
-};
+// const CreateCustomer = async (userId) => {
+//   const newCustomer = await Customer.create({ user: userId });
+//   return newCustomer;
+// };
 
 module.exports = {
   register,
   login,
-  registerCustomer,
 };
