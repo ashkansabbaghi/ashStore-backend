@@ -1,12 +1,21 @@
 const mongoose = require("mongoose");
 
-const SellerSchema = new mongoose.Schema(
+const CustomerSchema = new mongoose.Schema(
   {
-    userId : {type : mongoose.Schema.Types.ObjectId , ref: "User"},
-    discount : {type : mongoose.Schema.Types.ObjectId , ref: "Discount"}
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    discount: { type: mongoose.Schema.Types.ObjectId, ref: "Discount" },
   },
   { timestamps: true }
 );
 
+CustomerSchema.methods.itemCustomerModel = function () {
+  return {
+    user: this.user,
+    discount: this.discount,
 
-module.exports = mongoose.model("Seller", SellerSchema);
+    // createdAt: this.createdAt,
+    // updatedAt: this.updatedAt,
+  };
+};
+
+module.exports = mongoose.model("Customer", CustomerSchema);

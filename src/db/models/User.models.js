@@ -58,7 +58,7 @@ UserSchema.methods.generateToken = function () {
       isAdmin: this.isAdmin,
     },
     process.env.TOKEN_SEC,
-    { expiresIn: "3d" }
+    { expiresIn: "2d" }
   );
 };
 
