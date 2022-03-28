@@ -2,10 +2,10 @@ const mongoose = require("mongoose");
 
 const DiscountSchema = new mongoose.Schema(
   {
-    code :{type: String , required: true},
-    title : {type: String , required: true},
+    code :{type: String , default:"code-discount"},
+    title : {type: String },
     description : {type: String},
-    percentage :{type : Number}
+    percentage :{type : Number , default:'5'}
   },
   { timestamps: true }
 );

@@ -26,10 +26,12 @@ const getUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   const { id: userId } = req.params;
+  const{isAdmin ,...itemUpdate} = req.body; //remove isAdmin
+  console.log(itemUpdate);
   try {
     const upUser = await User.findByIdAndUpdate(
       userId,
-      { $set: req.body },
+      { $set: itemUpdate },
       { new: true }
     );
     return res.status(200).json({ ...upUser.sendUserModel() });

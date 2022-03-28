@@ -1,6 +1,8 @@
 const User = require("../db/models/User.models");
+const Customer = require("../db/models/Customer.models");
+const Seller = require("../db/models/Seller.models");
 // const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const Bcrypt = require("bcrypt");
 
 //TODO: bcrypt (hash pass)
 //TODO: : https://www.npmjs.com/package/passport
@@ -8,32 +10,12 @@ const bcrypt = require("bcrypt");
 // REGISTER
 const register = async (req, res) => {
   try {
-    const { username, email, password, phone } = req.body;
-
-    if (!(email && username && phone && password))
-      return res.status(400).json("All input is required"); // check empty input
-
-    if (await User.findOne({ username }))
-      return res.status(409).json("This username exists !"); // exists username
-
-    if (await User.findOne({ email }))
-      return res.status(409).json("There is a user with this email !"); // exists email
-
-
-    const salt = bcrypt.genSaltSync(+process.env.SALT_ROUND);
-    const hashedPassword = bcrypt.hashSync(password, salt);
-
-    const newUser = new User({
-      username,
-      phone,
-      email: email.toLowerCase(),
-      salt,
-      hashedPassword,
-    });
-
-    const accessToken = newUser.generateToken()
-    const saveUser = await newUser.save();
-    return res.status(201).json({ ...saveUser.sendUserModel(),accessToken });
+    const notValid = await ValidInput(req.body);
+    if (notValid) return res.status(notValid.status).json(notValid.msg);
+    const createUser = await CreateUser(req.body);
+    return res
+      .status(201)
+      .json({ user: createUser.user.sendUserModel(), token: createUser.token });
   } catch (e) {
     console.log(e);
     return res.status(500).json(e);
@@ -49,10 +31,10 @@ const login = async (req, res) => {
 
     if (!user) return res.status(401).json("Wrong Credentials !"); //check existing user
 
-    if (!bcrypt.compareSync(req.body.password, user.hashedPassword))
+    if (!Bcrypt.compareSync(req.body.password, user.hashedPassword))
       return res.status(401).json("Wrong Credentials !"); //check password
 
-    const accessToken = user.generateToken()
+    const accessToken = user.generateToken();
     return res.status(200).json({
       ...user.sendUserModel(),
       token: accessToken,
@@ -63,7 +45,61 @@ const login = async (req, res) => {
   }
 };
 
+// Register customer
+const registerCustomer = async (req, res) => {
+  try {
+    // const { username, email, password, phone } = req.body;
+    const notValid = await ValidInput(req.body);
+    if (notValid) return res.status(notValid.status).json(notValid.msg);
+
+    const createUser = await CreateUser(req.body);
+    const token = createUser.token;
+    const customer = await CreateCustomer(createUser.user.id);
+    const c = await Customer.findById(customer.id, token).populate("user");
+    return res.status(201).json({ customer: c, token });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json(e);
+  }
+};
+
+/* *********** not exports ************* */
+
+const ValidInput = async (body) => {
+  const { username, email, password, phone } = body;
+  if (!(email && username && phone && password))
+    return { status: 400, msg: "All input is required" }; // check empty input
+
+  if (await User.findOne({ username }))
+    return { status: 409, msg: "This username exists !" };
+
+  if (await User.findOne({ email }))
+    return { status: 409, msg: "There is a user with this email !" };
+};
+
+const CreateUser = async (body) => {
+  const { username, email, password, phone } = body;
+  const salt = Bcrypt.genSaltSync(+process.env.SALT_ROUND);
+  const hashedPassword = Bcrypt.hashSync(password, salt);
+  const newUser = new User({
+    username,
+    phone,
+    email: email.toLowerCase(),
+    salt,
+    hashedPassword,
+  });
+  const token = newUser.generateToken();
+  const user = await newUser.save();
+  return { token, user };
+};
+
+const CreateCustomer = async (userId) => {
+  const newCustomer = await Customer.create({ user: userId });
+  return newCustomer;
+};
+
 module.exports = {
   register,
   login,
+  registerCustomer,
 };

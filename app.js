@@ -3,17 +3,30 @@ require("dotenv").config({ path: ".env.development" }); //file .env
 const express = require("express");
 const app = express();
 const logger = require("morgan");
-
+const createError = require("http-errors");
 const PORT = process.env.PORT || 8080;
 
 const MongoDB = require("./src/db/connections/mongodb");
 
-if (process.env.ENV === 'development') {
-	app.use(logger('dev'))
+if (process.env.ENV === "development") {
+  app.use(logger("dev"));
 }
 app.use(express.json()); // before routes
 
 app.use("/api/v1", require("./src/routes/api.routes"));
+
+app.use(async (req, res, next) => {
+  next(createError.NotFound("This path does not exist"));
+});
+app.use((err, req, res, next) => {
+  res.status(err.status || 500);
+  res.send({
+    error: {
+      status: err.status || 500,
+      message: err.message,
+    },
+  });
+});
 
 MongoDB.connections
   .then(
