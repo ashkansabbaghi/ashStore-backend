@@ -24,6 +24,21 @@ const verifyTokenAndAuthorization = (req, res, next) => {
 	});
 };
 
+const verifyAdmin = (req, res, next) => {
+	verifyToken(req, res, () => {
+		const adminHeader = req.headers
+		console.log(adminHeader.apikey);
+		console.log(req.user.isAdmin);
+		if(req.user.isAdmin && adminHeader.apikey === "ashstore"){
+			next();
+		}else{
+			return res.status(401).json('You are not an admin!')
+		}
+
+	})
+}
+
 module.exports = {
 	verifyToken: verifyTokenAndAuthorization,
+	verifyAdmin
 };
