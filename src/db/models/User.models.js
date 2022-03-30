@@ -6,12 +6,13 @@ const UserSchema = new Schema(
   {
     addresses: [{ type: Schema.Types.ObjectId, ref: "Address" }], // one to many
     discount: { type: mongoose.Schema.Types.ObjectId, ref: "Discount" }, // one to one
+    products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product"}], // one to many
     /* **************************** */
     isAdmin: { type: Boolean, default: false },
     username: { type: String, lowercase: true, required: true, unique: true },
     salt: { type: String, required: true },
     hashedPassword: { type: String, required: true },
-    genders: { type: String, enum: ["man", "women", "diff"],default:"man" },
+    genders: { type: String, enum: ["man", "women", "diff"], default: "man" },
     email: {
       type: String,
       unique: [true, "email already exists in database!"],
@@ -25,7 +26,7 @@ const UserSchema = new Schema(
         message: "{VALUE} is not a valid email!",
       },
     },
-    image: { type: String  , default:"/"},
+    image: { type: String, default: "/" },
     phone: { type: Number && String, required: true },
     userStatus: {
       type: String,
@@ -38,7 +39,7 @@ const UserSchema = new Schema(
       enum: ["admin", "seller", "customer"],
       default: "customer",
     },
-    codeSeller: { type: Number },
+    codeSeller: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
@@ -53,6 +54,9 @@ UserSchema.methods.sendUserModel = function () {
     userStatus: this.userStatus,
     image: this.image,
     addresses: this.addresses,
+    role: this.role,
+    codeSeller: this.codeSeller,
+    discount: this.discount,
 
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
@@ -64,6 +68,8 @@ UserSchema.methods.generateToken = function () {
     {
       id: this._id,
       isAdmin: this.isAdmin,
+      role : this.role,
+      codeSeller : this.codeSeller
     },
     process.env.TOKEN_SEC,
     { expiresIn: "2d" }
