@@ -23,7 +23,6 @@ const addAddress = async (req, res, next) => {
   const { ...address } = req.body;
   try {
     const createAddress = await CreateAddress(address);
-    console.log(createAddress.id);
     const user = await AddUserToAddress(userId, createAddress.id);
     return res.status(201).json(user.sendUserModel());
   } catch (e) {

@@ -7,11 +7,13 @@ const createError = require("http-errors");
 const PORT = process.env.PORT || 8080;
 
 const MongoDB = require("./src/db/connections/mongodb");
+// const { verifyAllUser } = require("./src/middlewares/verifyToken.middlewares");
 
 if (process.env.ENV === "development") {
   app.use(logger("dev"));
 }
 app.use(express.json()); // before routes
+// app.use(verifyAllUser);
 
 app.use("/api/v1", require("./src/routes/api.routes"));
 
