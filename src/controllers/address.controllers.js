@@ -3,56 +3,85 @@ const Address = require("../db/models/Address.models");
 
 const getAllAddress = async (req, res, next) => {
   try {
-    console.log("all addresses");
     const address = await Address.find();
     return res.status(200).json(address);
   } catch (e) {
-    return res.status(500).json(e);
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "error sending addresses",
+      },
+    });
   }
 };
 
 const getListUserAddress = async (req, res, next) => {
-  const userId = req.params.id;
-  const address = await User.findById(userId);
-  console.log(address.addresses);
-  return res.status(200).json(address.addresses);
+  try {
+    const user = await User.findById(req.user.id).populate("addresses");
+    const address = user.addresses.map((address) => {
+      console.log(address);
+      return address.itemAddressModel();
+    });
+    return res.status(200).json(address);
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "address not found",
+      },
+    });
+  }
 };
 
 const addAddress = async (req, res, next) => {
-  const userId = req.params.id;
-  const { ...address } = req.body;
+  const { userId, ...address } = req.body;
   try {
     const createAddress = await CreateAddress(address);
-    const user = await AddUserToAddress(userId, createAddress.id);
-    return res.status(201).json(user.sendUserModel());
+    const user = await AddUserToAddress(req.body.userId, createAddress.id);
+    return res.status(201).json(createAddress.itemAddressModel());
   } catch (e) {
     console.log(e);
-    return res.status(500).json(e);
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "address not created",
+      },
+    });
   }
 };
 
 const updateAddress = async (req, res, next) => {
   try {
-    const { id, ...item } = req.body; //remove id in body
-    const addressId = req.params.id;
+    const { addressId, ...item } = req.body; //remove id in body
+
     console.log(item);
     const updateAddress = await Address.findByIdAndUpdate(
-      addressId,
+      req.body.addressId,
       { $set: item },
       { new: true }
     );
-    return res.status(200).json(updateAddress);
+    return res.status(200).json(updateAddress.itemAddressModel());
   } catch (e) {
-    return res.status(500).json("not update address");
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "address not updated",
+      },
+    });
   }
 };
 
 const deleteAddress = async (req, res, next) => {
   try {
-    const address = await Address.findByIdAndDelete(req.params.id);
-    return res.status(200).json({remove: address});
+    const address = await Address.findByIdAndDelete(req.body.addressId);
+    return res.status(200).json({remove  : address.itemAddressModel()});
   } catch (e) {
-    return res.status(500).json("not delete address");
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "address not deleted",
+      },
+    });
   }
 };
 

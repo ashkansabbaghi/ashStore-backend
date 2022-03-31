@@ -9,7 +9,12 @@ const getAllUsers = async (req, res, next) => {
     });
     return res.status(200).json({ ...newUsers });
   } catch (e) {
-    return res.status(500).json(e);
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "There is an error sending users",
+      },
+    });
   }
 };
 
@@ -20,13 +25,18 @@ const getUser = async (req, res, next) => {
     return res.status(200).json(user.sendUserModel());
   } catch (e) {
     console.log(e);
-    return res.status(500).json("not found user !");
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "user not found",
+      },
+    });
   }
 };
 
 const updateUser = async (req, res, next) => {
   const { id: userId } = req.params;
-  const{isAdmin ,...itemUpdate} = req.body; //remove isAdmin
+  const { isAdmin, ...itemUpdate } = req.body; //remove isAdmin
   console.log(itemUpdate);
   try {
     const upUser = await User.findByIdAndUpdate(
@@ -36,7 +46,12 @@ const updateUser = async (req, res, next) => {
     );
     return res.status(200).json({ ...upUser.sendUserModel() });
   } catch (e) {
-    return res.status(500).json("not update user");
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "user not update",
+      },
+    });
   }
 };
 
@@ -45,7 +60,12 @@ const deleteUser = async (req, res, next) => {
     const user = await User.findByIdAndDelete(req.params.id);
     res.status(200).json(user);
   } catch (e) {
-    res.status(500).json("not delete user");
+    res.status(500).json({
+      error: {
+        status: 500,
+        message: "product could not be deleted"
+      },
+    });
   }
 };
 
