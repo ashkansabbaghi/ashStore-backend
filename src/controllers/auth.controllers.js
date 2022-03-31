@@ -13,10 +13,15 @@ const register = async (req, res) => {
     const createUser = await CreateUser(req.body);
     return res
       .status(201)
-      .json({ user: createUser.user.sendUserModel(), token: createUser.token });
+      .json({...createUser.user.sendUserModel(), token: createUser.token });
   } catch (e) {
     console.log(e);
-    return res.status(500).json(e);
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "could not register"
+      },
+    });
   }
 };
 

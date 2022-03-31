@@ -9,17 +9,20 @@ const addressSchema = new Schema(
     city: { type: String },
     street: { type: String },
     continueAddress: { type: String },
+    postCode: { type: Number , min : 10  , default : 0 , required : true},
   },
   { timestamps: true }
 );
 
 addressSchema.methods.itemAddressModel = function () {
   return {
+    addressId : this._id,
     country: this.country,
     state: this.state,
     city: this.city,
     street: this.street,
     continueAddress: this.continueAddress,
+    postCode : this.postCode,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

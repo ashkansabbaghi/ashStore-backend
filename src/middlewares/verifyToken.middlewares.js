@@ -45,7 +45,8 @@ const verifyTokenAndAuthorization = (req, res, next) => {
 const verifyAdmin = (req, res, next) => {
   verifyToken(req, res, () => {
     const adminHeader = req.headers;
-    if (req.user.isAdmin && adminHeader.apikey === "ashstore") {
+    console.log(req.user.isAdmin ,  req.user.role ,adminHeader.apikey );
+    if (req.user.isAdmin && adminHeader.apikey === "ashstore" &&  req.user.role === "admin") {
       next();
     } else {
       return res.status(401).json("You are not an admin!");
@@ -56,7 +57,7 @@ const verifyAdmin = (req, res, next) => {
 const verifySeller = (req, res, next) => {
   verifyToken(req, res, () => {
     console.log("verifySeller",req.user.codeSeller, req.user.role);
-    if (req.user.role === "seller" && req.user.codeSeller !== 0) {
+    if (req.user.role === "seller" && req.user.codeSeller !== 0 || req.user.role === "admin") {
       next();
     } else {
       return res.status(401).json("You are not a seller!");

@@ -24,6 +24,8 @@ const ProductSchema = new mongoose.Schema(
 
 ProductSchema.methods.itemProductModel = function () {
   return {
+    auth : this.auth,
+    tag: this.tag,
     name: this.name,
     desc: this.desc,
     unit: this.unit,

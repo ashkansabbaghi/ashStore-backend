@@ -3,14 +3,32 @@ const Category = require("../db/models/Category.models");
 const User = require("../db/models/User.models");
 
 const getAllProducts = async (req, res, next) => {
-  const listProducts = await Products.find().exec();
-  return res.json(listProducts);
+  try {
+    const listProducts = await Products.find().exec();
+    return res.status(200).json(listProducts);
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "error sending products",
+      },
+    });
+  }
 };
 
 const getSingleProduct = async (req, res, next) => {
   const { id } = req.params;
-  const product = await Products.findById(id);
-  return res.json(product);
+  try {
+    const product = await Products.findById(id).populate("auth");
+    return res.status(200).json(product);
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "product not found",
+      },
+    });
+  }
 };
 
 const createProduct = async (req, res, next) => {
@@ -18,23 +36,51 @@ const createProduct = async (req, res, next) => {
   const userId = req.user.id;
   try {
     const newProduct = await Products.create({ ...params });
-    const seller = await AddProductToUser(userId, newProduct);
-    return res.status(201).json({ newProduct , products : seller.products });
+    const auth = await AddProductToUser(userId, newProduct); // auth
+    const product = await Products.findById(newProduct.id);
+    return res.status(201).json({ product });
   } catch (e) {
     console.log(e);
-    return res.status(500).send(e);
+    return res.status(500).send({
+      error: {
+        status: 500,
+        message: "product not made",
+      },
+    });
   }
 };
 
-const removeProduct = async (req, res, next) => {
-  console.log(req.params);
-  await Products.findByIdAndDelete(req.params.id, (err, product) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).send(err);
-    } else {
-      return res.status(200).json(`delete ${product.name}`);
-    }
+const updateProduct = async (req, res) => {
+  const { id, ...item } = req.body;
+  const productId = req.body.id;
+  try {
+    const upProduct = await Products.findByIdAndUpdate(
+      productId,
+      { $set: item },
+      { new: true }
+    );
+    return res.status(200).json(upProduct);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "product not updated"
+      },
+    });
+  }
+};
+
+const removeProduct = (req, res, next) => {
+  Products.findOneAndDelete({ _id: req.body.id }, (err, product) => {
+    if (err) return res.status(500).send(err);
+
+    return res.status(200).json({
+      error: {
+        status: 500,
+        message: "User could not be deleted",
+      },
+    });
   });
 };
 
@@ -65,4 +111,5 @@ module.exports = {
   getSingleProduct,
   removeProduct,
   createProduct,
+  updateProduct,
 };

@@ -4,6 +4,9 @@ const {
   verifyToken,
   verifyAdmin,
 } = require("../middlewares/verifyToken.middlewares");
+const { validateResultSchema } = require("../middlewares/validRequestSchema");
+const { CreateAddressSchema , UpdateAddressSchema} = require("../schema/addressSchema");
+
 // User
 router.route("/").get(verifyAdmin, Controllers.Users.getAllUsers); //verify admin
 router
@@ -13,12 +16,25 @@ router
   .delete(verifyToken, verifyAdmin, Controllers.Users.deleteUser);
 
 // Address
-router.route("/address").get(verifyAdmin, Controllers.Address.getAllAddress); //verify admin
 router
-  .route("/address/:id")
-  .get(verifyToken, Controllers.Address.getListUserAddress)
-  .post(verifyToken, Controllers.Address.addAddress)
-  .put(verifyToken, Controllers.Address.updateAddress)
-  .delete(Controllers.Address.deleteAddress);
+  .route("/address")
+  .get(verifyAdmin, Controllers.Address.getAllAddress) //verify admin
+  .post(
+    CreateAddressSchema,
+    validateResultSchema,
+    verifyToken,
+    Controllers.Address.addAddress
+  )
+  .put(
+    UpdateAddressSchema,
+    validateResultSchema,
+    verifyToken,
+    Controllers.Address.updateAddress
+  )
+  .delete(verifyToken,Controllers.Address.deleteAddress);
+
+router
+  .route("/address/user")
+  .get(verifyToken, Controllers.Address.getListUserAddress);
 
 module.exports = router;
