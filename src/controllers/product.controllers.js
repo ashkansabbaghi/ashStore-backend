@@ -1,10 +1,10 @@
-const Products = require("../db/models/Product.models");
+const Product = require("../db/models/Product.models");
 const Category = require("../db/models/Category.models");
 const User = require("../db/models/User.models");
 
 const getAllProducts = async (req, res, next) => {
   try {
-    const listProducts = await Products.find().exec();
+    const listProducts = await Product.find().exec();
     return res.status(200).json(listProducts);
   } catch (e) {
     return res.status(500).json({
@@ -19,7 +19,7 @@ const getAllProducts = async (req, res, next) => {
 const getSingleProduct = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const product = await Products.findById(id).populate("auth");
+    const product = await Product.findById(id).populate("auth");
     return res.status(200).json(product);
   } catch (e) {
     return res.status(500).json({
@@ -35,9 +35,9 @@ const createProduct = async (req, res, next) => {
   const { ...params } = req.body;
   const userId = req.user.id;
   try {
-    const newProduct = await Products.create({ ...params });
+    const newProduct = await Product.create({ ...params });
     const auth = await AddProductToUser(userId, newProduct); // auth
-    const product = await Products.findById(newProduct.id);
+    const product = await Product.findById(newProduct.id);
     return res.status(201).json({ product });
   } catch (e) {
     console.log(e);
@@ -54,7 +54,7 @@ const updateProduct = async (req, res) => {
   const { id, ...item } = req.body;
   const productId = req.body.id;
   try {
-    const upProduct = await Products.findByIdAndUpdate(
+    const upProduct = await Product.findByIdAndUpdate(
       productId,
       { $set: item },
       { new: true }
@@ -72,7 +72,7 @@ const updateProduct = async (req, res) => {
 };
 
 const removeProduct = (req, res, next) => {
-  Products.findOneAndDelete({ _id: req.body.id }, (err, product) => {
+  Product.findOneAndDelete({ _id: req.body.id }, (err, product) => {
     if (err) return res.status(500).send(err);
 
     return res.status(200).json({
@@ -99,7 +99,7 @@ const createCategory = function (category) {
   });
 };
 const addProductToCategory = function (tutorialId, categoryId) {
-  return Products.findByIdAndUpdate(
+  return Product.findByIdAndUpdate(
     tutorialId,
     { category: categoryId },
     { new: true, useFindAndModify: false }

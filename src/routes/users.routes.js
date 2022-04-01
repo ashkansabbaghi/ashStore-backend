@@ -5,7 +5,10 @@ const {
   verifyAdmin,
 } = require("../middlewares/verifyToken.middlewares");
 const { validateResultSchema } = require("../middlewares/validRequestSchema");
-const { CreateAddressSchema , UpdateAddressSchema} = require("../schema/addressSchema");
+const {
+  CreateAddressSchema,
+  UpdateAddressSchema,
+} = require("../schema/addressSchema");
 
 // User
 router.route("/").get(verifyAdmin, Controllers.Users.getAllUsers); //verify admin
@@ -31,10 +34,26 @@ router
     verifyToken,
     Controllers.Address.updateAddress
   )
-  .delete(verifyToken,Controllers.Address.deleteAddress);
+  .delete(verifyToken, Controllers.Address.deleteAddress);
 
 router
   .route("/address/user")
   .get(verifyToken, Controllers.Address.getListUserAddress);
+
+// comment
+router
+  .route("/comment")
+  .get(verifyToken, verifyAdmin, Controllers.Comment.getAllComments) // verify (admin)
+  .post(verifyToken, Controllers.Comment.createComment)
+  .put(verifyToken, verifyAdmin, Controllers.Comment.updateComment) //comment all update (admin)
+  .delete(verifyToken, verifyAdmin, Controllers.Comment.deleteComment) //  comment all delete (admin)
+
+router
+  .route("/comment/self")
+  .delete(verifyToken, Controllers.Comment.deleteCommentSelf); //  comment delete self
+
+router
+  .route("/comment/:id")
+  .get(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
 
 module.exports = router;

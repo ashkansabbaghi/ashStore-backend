@@ -6,12 +6,13 @@ const UserSchema = new Schema(
   {
     addresses: [{ type: Schema.Types.ObjectId, ref: "Address" }], // one to many
     discount: { type: mongoose.Schema.Types.ObjectId, ref: "Discount" }, // one to one
-    products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product"}], // one to many
+    products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }], // one to many
+    // comments : [{type: mongoose.Schema.Types.ObjectId, ref:"Comment"}],
     /* **************************** */
     isAdmin: { type: Boolean, default: false },
     username: { type: String, lowercase: true, required: true, unique: true },
-    salt: { type: String, required: true },
-    hashedPassword: { type: String, required: true },
+    salt: { type: String, required: true }, //password
+    hashedPassword: { type: String, required: true }, //password
     genders: { type: String, enum: ["man", "women", "diff"], default: "man" },
     email: {
       type: String,
@@ -67,9 +68,15 @@ UserSchema.methods.generateToken = function () {
   return jwt.sign(
     {
       id: this._id,
+      username: this.username,
+      genders: this.genders,
+      email: this.email,
+      phone: this.phone,
+      role: this.role,
+      userStatus: this.userStatus,
       isAdmin: this.isAdmin,
-      role : this.role,
-      codeSeller : this.codeSeller
+      role: this.role,
+      codeSeller: this.codeSeller,
     },
     process.env.TOKEN_SEC,
     { expiresIn: "2d" }
