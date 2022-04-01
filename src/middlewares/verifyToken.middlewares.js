@@ -34,7 +34,8 @@ const verifyToken = (req, res, next) => {
 
 const verifyTokenAndAuthorization = (req, res, next) => {
   verifyToken(req, res, () => {
-    if (req.user.id === req.params.id || req.user.isAdmin) {
+    console.log(req.user.id,req.user.isAdmin);
+    if (req.user.id || req.user.isAdmin ) {
       next();
     } else {
       return res.status(401).json("you are not allowed to the that !");
