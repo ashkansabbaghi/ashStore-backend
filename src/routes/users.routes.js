@@ -53,7 +53,14 @@ router
   .delete(verifyToken, Controllers.Comment.deleteCommentSelf); //  comment delete self
 
 router
+  .route("/comment/reply")
+  .post(verifyToken, Controllers.Comment.replyComment); //  comment reply
+
+router
   .route("/comment/:id")
   .get(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
+
+
+
 
 module.exports = router;

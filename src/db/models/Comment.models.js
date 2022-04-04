@@ -12,6 +12,7 @@ const CommentSchema = new mongoose.Schema(
       enum: ["pending", "approved"],
       default: "approved",
     },
+    parentId : { type: mongoose.Schema.Types.ObjectId, ref: 'Comment' },
   },
   { timestamps: true }
 );
