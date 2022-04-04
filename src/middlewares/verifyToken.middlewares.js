@@ -47,7 +47,7 @@ const verifyAdmin = (req, res, next) => {
   verifyToken(req, res, () => {
     const adminHeader = req.headers;
     console.log(req.user.isAdmin ,  req.user.role ,adminHeader.apikey );
-    if (req.user.isAdmin && adminHeader.apikey === "ashstore" &&  req.user.role === "admin") {
+    if (req.user.isAdmin &&  req.user.role === "admin") {
       next();
     } else {
       return res.status(401).json("You are not an admin!");
