@@ -46,11 +46,11 @@ router
   .get(verifyToken, verifyAdmin, Controllers.Comment.getAllComments) // verify (admin)
   .post(verifyToken, Controllers.Comment.createComment)
   .put(verifyToken, verifyAdmin, Controllers.Comment.updateComment) //comment all update (admin)
-  .delete(verifyToken, verifyAdmin, Controllers.Comment.deleteComment) //  comment all delete (admin)
+  .delete(verifyToken, Controllers.Comment.deleteComment) //  comment all delete (admin)
 
-router
-  .route("/comment/self")
-  .delete(verifyToken, Controllers.Comment.deleteCommentSelf); //  comment delete self
+// router
+//   .route("/comment/self")
+//   .delete(verifyToken, Controllers.Comment.deleteCommentSelf); //  comment delete self
 
 router
   .route("/comment/reply")
