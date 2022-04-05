@@ -45,12 +45,9 @@ router
   .route("/comment")
   .get(verifyToken, verifyAdmin, Controllers.Comment.getAllComments) // verify (admin)
   .post(verifyToken, Controllers.Comment.createComment)
-  .put(verifyToken, verifyAdmin, Controllers.Comment.updateComment) //comment all update (admin)
-  .delete(verifyToken, Controllers.Comment.deleteComment) //  comment all delete (admin)
+  .put(verifyToken, Controllers.Comment.updateComment) //comment all update
+  .delete(verifyToken, Controllers.Comment.deleteComment) //  comment all delete
 
-// router
-//   .route("/comment/self")
-//   .delete(verifyToken, Controllers.Comment.deleteCommentSelf); //  comment delete self
 
 router
   .route("/comment/reply")

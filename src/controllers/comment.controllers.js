@@ -57,21 +57,53 @@ const getListProductComment = async (req, res, next) => {
 
 const updateComment = async (req, res, next) => {
   try {
-    // console.log(req.body.commentId,  req.user);
-    const valid = await validSelfComment(req.body.commentId, req.user);
-    console.log("valid", valid);
-    if (valid.status === 200) {
+    if (req.user.role == "admin") {
       const { commentId, ...item } = req.body; //remove id in body
-      console.log(item);
-      const updateComment = await Comment.findByIdAndUpdate(
+      Comment.findByIdAndUpdate(
         req.body.commentId,
         { $set: item },
         { new: true }
-      );
-      console.log("update comment :", updateComment);
-      return res.status(valid.status).json(updateComment);
+      ).then((upComment) => {
+        if (upComment) {
+          return res.status(200).json(upComment);
+        } else {
+          return res.status(500).json({
+            error: {
+              status: 500,
+              message: "not found comment",
+            },
+          });
+        }
+      });
     } else {
-      return res.status(valid.status).json(valid.msg);
+      const valid = await validSelfComment(req.body.commentId, req.user);
+      if (valid.status === 200) {
+        const { commentId, ...item } = req.body; //remove id in body
+        Comment.findByIdAndUpdate(
+          req.body.commentId,
+          { $set: item },
+          { new: true }
+        ).then((upComment) => {
+          if (upComment) {
+            // console.log("update comment :", upComment);
+            return res.status(valid.status).json(upComment);
+          } else {
+            return res.status(500).json({
+              error: {
+                status: 500,
+                message: "not found comment",
+              },
+            });
+          }
+        });
+      } else {
+        return res.status(valid.status).json({
+          error: {
+            status: valid.status,
+            message: valid.msg,
+          },
+        });
+      }
     }
   } catch (e) {
     return res.status(500).json({
@@ -139,7 +171,7 @@ const deleteComment = async (req, res, next) => {
 // replay
 const replyComment = async (req, res, next) => {
   const { productId, parentId, text, image } = req.body;
-  const author = { author: { id: req.user.id, username: req.user.username } }; // create author
+  const author = {   id: req.user.id, username: req.user.username  }; // create author
   const commentFinal = { author, parentId, text, image };
   try {
     const createComment = await Comment.create(commentFinal);
