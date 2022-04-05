@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const ProductSchema = new mongoose.Schema(
   {
     auth: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // one to many
-    tag: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tag" }], // many to many
+    tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tag" }], // many to many
     category: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }], // one to many
     image: { type: mongoose.Schema.Types.ObjectId, ref: "Image" }, //one to many
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }], // one to aLot

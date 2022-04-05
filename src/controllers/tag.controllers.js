@@ -2,42 +2,40 @@ const Comment = require("../db/models/Comment.models");
 const Product = require("../db/models/Product.models");
 const Tag = require("../db/models/Tag.models");
 
-const getAllTags = async (req, res, next) => {
-  try {
-    const comments = await Comment.find();
-    return res.status(200).json(comments);
-  } catch (e) {
-    return res.status(500).json({
-      error: {
-        status: 500,
-        message: "error sending comments",
-      },
+// promise function
+
+const getAllTags = (req, res, next) => {
+  Tag.find()
+    .then((tags) => {
+      return res.status(200).json(tags);
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).json({
+        error: {
+          status: 500,
+          message: "error sending tags",
+        },
+      });
     });
-  }
 };
 
-// const createComment = async (req, res, next) => {
-//   const { productId, ...comment } = req.body; // remove productId from input
-//   const author = { author: { id: req.user.id, username: req.user.username } }; // create author
-//   const commentFinal = Object.assign(comment, author);
-//   try {
-//     const createComment = await Comment.create(commentFinal);
-//     const product = await Product.findByIdAndUpdate(
-//       req.body.productId,
-//       { $push: { comments: createComment.id } },
-//       { new: true, useFindAndModify: false }
-//     );
-//     return res.status(201).json(createComment);
-//   } catch (e) {
-//     console.log(e);
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comment not created",
-//       },
-//     });
-//   }
-// };
+const createTags = (req, res, next) => {
+  const { ...item } = req.body;
+  Tag.create(item)
+    .then((tags) => {
+      return res.status(201).json(tags);
+    })
+    .catch((e) => {
+      console.log(e);
+      return res.status(500).json({
+        error: {
+          status: 500,
+          message: "tag not create",
+        },
+      });
+    });
+};
 
 // const getListProductComment = async (req, res, next) => {
 //   try {
@@ -176,11 +174,11 @@ const getAllTags = async (req, res, next) => {
 // };
 
 module.exports = {
-//   getAllComments,
-//   createComment,
-//   getListProductComment,
-//   updateComment,
-//   deleteComment,
-//   deleteCommentSelf,
-//   replyComment,
+  getAllTags,
+  createTags,
+  //   getListProductComment,
+  //   updateComment,
+  //   deleteComment,
+  //   deleteCommentSelf,
+  //   replyComment,
 };
