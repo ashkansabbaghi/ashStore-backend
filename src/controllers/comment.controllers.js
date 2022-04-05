@@ -84,21 +84,36 @@ const updateComment = async (req, res, next) => {
 };
 
 const deleteComment = async (req, res, next) => {
-  try {
-    const comment = await Comment.findByIdAndDelete(req.body.commentId);
-    return res.status(200).json({ remove: comment });
-  } catch (e) {
-    return res.status(500).json({
-      error: {
-        status: 500,
-        message: "comment not deleted",
-      },
+  // admin for all delete
+  if (req.user.role == "admin") {
+    Comment.findByIdAndDelete(req.body.commentId).then((comment) => {
+      if (comment) {
+        console.log(comment);
+        Product.findOneAndUpdate({
+          $pull: { comments: req.body.commentId },
+        }).then((product) => {
+          if (product) {
+            return res.status(200).json({ remove: comment });
+          } else {
+            return res.status(500).json({
+              error: {
+                status: 500,
+                message: "not found comment in product",
+              },
+            });
+          }
+        });
+      } else {
+        return res.status(500).json({
+          error: {
+            status: 500,
+            message: "not found comment",
+          },
+        });
+      }
     });
-  }
-};
-
-const deleteCommentSelf = async (req, res, next) => {
-  try {
+  } else {
+    // valid edit comment self
     const valid = await validSelfComment(req.body.commentId, req.user);
     if (valid.status === 200) {
       Comment.deleteOne({ _id: valid.res }).then((response) => {
@@ -118,27 +133,14 @@ const deleteCommentSelf = async (req, res, next) => {
         },
       });
     }
-  } catch (e) {
-    return res.status(500).json({
-      error: {
-        status: 500,
-        message: "comment not deleted",
-      },
-    });
   }
 };
 
 // replay
-
 const replyComment = async (req, res, next) => {
   const { productId, parentId, text, image } = req.body;
   const author = { author: { id: req.user.id, username: req.user.username } }; // create author
-  const commentFinal = {
-    author,
-    parentId,
-    text,
-    image,
-  };
+  const commentFinal = { author, parentId, text, image };
   try {
     const createComment = await Comment.create(commentFinal);
     const product = await Product.findByIdAndUpdate(
@@ -161,15 +163,22 @@ const replyComment = async (req, res, next) => {
 /*********************** Functions *************************** */
 
 const validSelfComment = async (commentId, user) => {
-  console.log(commentId);
+  // console.log(commentId);
   const comment = await Comment.findById(commentId);
-  console.log("validSelfComment :", user, comment, commentId);
-  if (user.id === comment.author.id) {
-    return { status: 200, res: commentId, comment: comment };
+  if (comment) {
+    // console.log("validSelfComment :", user, comment, commentId);
+    if (user.id === comment.author.id) {
+      return { status: 200, res: commentId, comment: comment };
+    } else {
+      return {
+        status: 500,
+        msg: "You are not allowed to delete this comment",
+      };
+    }
   } else {
     return {
       status: 500,
-      msg: "You are not allowed to delete this comment",
+      msg: "not Found comment",
     };
   }
 };
@@ -180,6 +189,5 @@ module.exports = {
   getListProductComment,
   updateComment,
   deleteComment,
-  deleteCommentSelf,
   replyComment,
 };
