@@ -3,6 +3,7 @@ const Controllers = require("../controllers");
 const {
   verifyToken,
   verifyAdmin,
+  verifySeller,
 } = require("../middlewares/verifyToken.middlewares");
 const { validateResultSchema } = require("../middlewares/validRequestSchema");
 const {
@@ -46,8 +47,7 @@ router
   .get(verifyToken, verifyAdmin, Controllers.Comment.getAllComments) // verify (admin)
   .post(verifyToken, Controllers.Comment.createComment)
   .put(verifyToken, Controllers.Comment.updateComment) //comment all update
-  .delete(verifyToken, Controllers.Comment.deleteComment) //  comment all delete
-
+  .delete(verifyToken, Controllers.Comment.deleteComment); //  comment all delete
 
 router
   .route("/comment/reply")
@@ -57,7 +57,9 @@ router
   .route("/comment/:id")
   .get(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
 
-
-
+router
+  .route("/tag")
+  .get(Controllers.Tag.getAllTags)
+  .post(verifyToken, verifySeller, Controllers.Tag.createTags) // verify admin & seller
 
 module.exports = router;
