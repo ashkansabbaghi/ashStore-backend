@@ -1,4 +1,4 @@
-const Comment = require("../db/models/Comment.models");
+const { update } = require("../db/models/Product.models");
 const Product = require("../db/models/Product.models");
 const Tag = require("../db/models/Tag.models");
 
@@ -21,8 +21,9 @@ const getAllTags = (req, res, next) => {
 };
 
 const createTags = (req, res, next) => {
-  const { ...item } = req.body;
-  Tag.create(item)
+  const title = req.body.title;
+  const slug = title.replace(/\s*-\s*/g, "-").replace(/[^-\w]+/g, "_");
+  Tag.create({ title, slug })
     .then((tags) => {
       return res.status(201).json(tags);
     })
@@ -37,64 +38,173 @@ const createTags = (req, res, next) => {
     });
 };
 
-// const getListProductComment = async (req, res, next) => {
-//   try {
-//     const product = await Product.findById(req.params.id).populate("comments");
-//     const comment = product.comments.map((comment) => {
-//       return comment;
-//     });
-//     return res.status(200).json(comment);
-//   } catch (e) {
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comments not found",
-//       },
-//     });
-//   }
-// };
+// objective function
 
-// const updateComment = async (req, res, next) => {
-//   try {
-//     // console.log(req.body.commentId,  req.user);
-//     const valid = await validSelfComment(req.body.commentId, req.user);
-//     console.log("valid", valid);
-//     if (valid.status === 200) {
-//       const { commentId, ...item } = req.body; //remove id in body
-//       console.log(item);
-//       const updateComment = await Comment.findByIdAndUpdate(
-//         req.body.commentId,
-//         { $set: item },
-//         { new: true }
-//       );
-//       console.log("update comment :", updateComment);
-//       return res.status(valid.status).json(updateComment);
-//     } else {
-//       return res.status(valid.status).json(valid.msg);
-//     }
-//   } catch (e) {
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comment not updated",
-//       },
-//     });
-//   }
-// };
+const setTagAndProduct = async (req, res, next) => {
+  const { productId, tagId } = req.body;
+  try {
+    const product = await Product.findById(productId).populate(
+      "tags",
+      "-products -__v"
+    );
+    const tag = await Tag.findById(tagId);
+    // console.log(product.tags);
+    if (!product && !tag)
+      return res
+        .status(500)
+        .json({ error: { status: 500, message: "tag or product not found" } });
 
-// const deleteComment = async (req, res, next) => {
-//   try {
-//     const comment = await Comment.findByIdAndDelete(req.body.commentId);
-//     return res.status(200).json({ remove: comment });
-//   } catch (e) {
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comment not deleted",
-//       },
-//     });
-//   }
-// };
+    const findTag = product.tags.find((t) => t.toString() === tag.id);
+
+    if (findTag)
+      return res.status(500).json({
+        error: {
+          status: 500,
+          message: "This tag has already been used in this product",
+        },
+      }); // check find tag in product
+
+    if (product.tags.length >= 5)
+      return res.status(500).json({
+        error: {
+          status: 500,
+          message: "You can not use more than 5 tags",
+        },
+      }); // check length 5 tag in product
+
+    product.tags.push(tag.id);
+    tag.products.push(product.id);
+
+    await product.save();
+    await tag.save();
+
+    return res.status(200).json({ product });
+  } catch (e) {
+    console.log(e);
+    return res
+      .status(500)
+      .json({ error: { status: 500, message: "not found" } });
+  }
+};
+
+const unSetTagAndProduct = async (req, res, next) => {
+  const { productId, tagId } = req.body;
+  try {
+    const product = await Product.findById(productId);
+    const tag = await Tag.findById(tagId);
+    if (!(product && tag))
+      return res
+        .status(500)
+        .json({ error: { status: 500, message: "tag or product not found" } });
+
+    const findTagWithProduct = product.tags.find(
+      (t) => t.toString() === tag.id
+    );
+    const findProductWithTag = tag.products.find(
+      (p) => p.toString() === product.id
+    );
+    console.log(findTagWithProduct, findProductWithTag);
+
+    if (!(findTagWithProduct && findProductWithTag))
+      return res.status(500).json({
+        error: {
+          status: 500,
+          message: "They are not set",
+        },
+      });
+
+    product.tags.pull(tag.id);
+    tag.products.pull(product.id);
+
+    await product.save();
+    await tag.save();
+
+    return res.status(200).json({ product });
+  } catch (e) {
+    console.log(e);
+    return res
+      .status(500)
+      .json({ error: { status: 500, message: "not found" } });
+  }
+};
+
+const updateTag = async (req, res, next) => {
+  try {
+    const { tagId, title } = req.body;
+    const slug = title.replace(/\s*-\s*/g, "-").replace(/[^-\w]+/g, "_");
+    const updateTag = await Tag.findByIdAndUpdate(
+      tagId,
+      { $set: { slug, title } },
+      { new: true }
+    );
+    return res.status(200).json(updateTag);
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "tag not updated",
+      },
+    });
+  }
+};
+
+const deleteTag = async (req, res, next) => {
+  try {
+    const tagId = req.body.tagId;
+    const tag = await Tag.findById(tagId);
+    if (!tag)
+      return res
+        .status(500)
+        .json({ error: { status: 404, message: "tag dose not exist" } });
+
+    console.log("before if", tag.products);
+    if (tag.products.length > 0) {
+      const listProductId = tag.products;
+      const numProducts = listProductId.length;
+      console.log("after if", numProducts);
+
+      for (let i = 0; i < numProducts; i++) {
+        console.log(listProductId[i].toString());
+        const product = await Product.findByIdAndUpdate(
+          listProductId[i].toString(),
+          {
+            $pull: { tags: tagId },
+          }
+        );
+      }
+      const deleteTag = await tag.deleteOne({ id: tagId });
+      return res
+        .status(200)
+        .json({ remove: deleteTag, products: tag.products });
+    } else return res.status(200).json({ remove: tag });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "tag not deleted",
+      },
+    });
+  }
+};
+
+const getListTagsInProducts = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.body.productId).populate("tags");
+    const tags = product.tags;
+    if (!tags)
+      return res
+        .status(500)
+        .json({ error: { status: 500, message: "The list is empty" } });
+
+    return res.status(200).json(tags);
+  } catch (e) {
+    console.log(e);
+    return res
+      .status(500)
+      .json({ error: { status: 500, message: "tags not found" } });
+  }
+};
 
 // const deleteCommentSelf = async (req, res, next) => {
 //   try {
@@ -127,55 +237,14 @@ const createTags = (req, res, next) => {
 //   }
 // };
 
-// // replay
-
-// const replyComment = async (req, res, next) => {
-//   const { productId, parentId, text, image } = req.body;
-//   const author = { author: { id: req.user.id, username: req.user.username } }; // create author
-//   const commentFinal = {
-//     author,
-//     parentId,
-//     text,
-//     image,
-//   };
-//   try {
-//     const createComment = await Comment.create(commentFinal);
-//     const product = await Product.findByIdAndUpdate(
-//       productId,
-//       { $push: { comments: createComment.id } },
-//       { new: true, useFindAndModify: false }
-//     );
-//     return res.status(201).json(createComment);
-//   } catch (e) {
-//     console.log(e);
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comment not created",
-//       },
-//     });
-//   }
-// };
-
-// /*********************** Functions *************************** */
-
-// const validSelfComment = async (commentId, user) => {
-//   console.log(commentId);
-//   const comment = await Comment.findById(commentId);
-//   console.log("validSelfComment :", user, comment, commentId);
-//   if (user.id === comment.author.id) {
-//     return { status: 200, res: commentId, comment: comment };
-//   } else {
-//     return {
-//       status: 500,
-//       msg: "You are not allowed to delete this comment",
-//     };
-//   }
-// };
-
 module.exports = {
   getAllTags,
   createTags,
+  setTagAndProduct,
+  updateTag,
+  deleteTag,
+  unSetTagAndProduct,
+  getListTagsInProducts,
   //   getListProductComment,
   //   updateComment,
   //   deleteComment,

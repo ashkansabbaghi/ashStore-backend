@@ -4,7 +4,9 @@ const User = require("../db/models/User.models");
 
 const getAllProducts = async (req, res, next) => {
   try {
-    const listProducts = await Product.find().exec();
+    const listProducts = await Product.find()
+      .populate({ path: "tags", select: "-products -__v" })
+      .exec();
     return res.status(200).json(listProducts);
   } catch (e) {
     return res.status(500).json({
@@ -65,7 +67,7 @@ const updateProduct = async (req, res) => {
     return res.status(500).json({
       error: {
         status: 500,
-        message: "product not updated"
+        message: "product not updated",
       },
     });
   }

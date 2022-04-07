@@ -9,34 +9,20 @@ const {
 
 const { CreateProductSchema } = require("../schema/productSchema");
 
-router
-  .route("/")
-  .get(Controllers.Products.getAllProducts)
-  .post(
-    CreateProductSchema,
-    validateResultSchema,
-    verifySeller,
-    Controllers.Products.createProduct
-  ) // verify seller
-  .put(verifySeller, Controllers.Products.updateProduct) // verify seller
-  .delete(verifySeller, Controllers.Products.removeProduct); // verify seller
-
-router.route("/:id").get(Controllers.Products.getSingleProduct);
-
 // comment
 router
-  .route("/comment")
+  .route("/")
   .get(verifyToken, verifyAdmin, Controllers.Comment.getAllComments) // verify (admin)
   .post(verifyToken, Controllers.Comment.createComment)
   .put(verifyToken, Controllers.Comment.updateComment) //comment all update
   .delete(verifyToken, Controllers.Comment.deleteComment); //  comment all delete
 
 router
-  .route("/comment/reply")
+  .route("/reply")
   .post(verifyToken, Controllers.Comment.replyComment); //  comment reply
 
 router
-  .route("/comment/:id")
+  .route("/:id")
   .get(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
 
 // tag
