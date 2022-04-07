@@ -41,25 +41,5 @@ router
   .route("/address/user")
   .get(verifyToken, Controllers.Address.getListUserAddress);
 
-// comment
-router
-  .route("/comment")
-  .get(verifyToken, verifyAdmin, Controllers.Comment.getAllComments) // verify (admin)
-  .post(verifyToken, Controllers.Comment.createComment)
-  .put(verifyToken, Controllers.Comment.updateComment) //comment all update
-  .delete(verifyToken, Controllers.Comment.deleteComment); //  comment all delete
-
-router
-  .route("/comment/reply")
-  .post(verifyToken, Controllers.Comment.replyComment); //  comment reply
-
-router
-  .route("/comment/:id")
-  .get(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
-
-router
-  .route("/tag")
-  .get(Controllers.Tag.getAllTags)
-  .post(verifyToken, verifySeller, Controllers.Tag.createTags) // verify admin & seller
 
 module.exports = router;

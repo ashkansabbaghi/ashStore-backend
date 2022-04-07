@@ -1,9 +1,17 @@
 const mongoose = require("mongoose");
 
+// valid limit
+const arrayLimit = (val) => {
+  return val.length <= 5;
+};
+
 const ProductSchema = new mongoose.Schema(
   {
     auth: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // one to many
-    tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tag" }], // many to many
+    tags: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tag" }],
+      validate: [arrayLimit, "{PATH} exceeds the limit of 5"],
+    }, // many to many
     category: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }], // one to many
     image: { type: mongoose.Schema.Types.ObjectId, ref: "Image" }, //one to many
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }], // one to aLot
@@ -11,10 +19,10 @@ const ProductSchema = new mongoose.Schema(
     color: [], //one to few
     // ******************************************************************** //
     hotProduct: { type: Boolean, default: false },
-    name: { type: String,  unique: true },
-    desc: { type: String, },
-    unit: { type: Number, },
-    price: { type: Number, },
+    name: { type: String, unique: true },
+    desc: { type: String },
+    unit: { type: Number },
+    price: { type: Number },
     publishedAt: { type: Date },
     startAt: { type: Date },
     endAt: { type: Date },
@@ -24,7 +32,7 @@ const ProductSchema = new mongoose.Schema(
 
 ProductSchema.methods.itemProductModel = function () {
   return {
-    auth : this.auth,
+    auth: this.auth,
     tag: this.tag,
     name: this.name,
     desc: this.desc,
@@ -34,5 +42,7 @@ ProductSchema.methods.itemProductModel = function () {
     endAt: this.endAt,
   };
 };
+
+
 
 module.exports = mongoose.model("Product", ProductSchema);
