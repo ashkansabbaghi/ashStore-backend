@@ -25,10 +25,5 @@ router
   .route("/:id")
   .get(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
 
-// tag
-router
-  .route("/tag")
-  .get(Controllers.Tag.getAllTags)
-  .post(verifyToken, verifySeller, Controllers.Tag.createTags); // verify admin & seller
 
 module.exports = router;

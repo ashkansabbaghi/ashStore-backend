@@ -79,7 +79,7 @@ UserSchema.methods.generateToken = function () {
       codeSeller: this.codeSeller,
     },
     process.env.TOKEN_SEC,
-    { expiresIn: "2d" }
+    { expiresIn: "10d" }
   );
 };
 

@@ -11,6 +11,7 @@ const ImageSchema = new mongoose.Schema(
 
 ImageSchema.methods.itemProductModel = function () {
   return {
+    imageId :this.id,
     alt: this.alt,
     url: this.image,
     caption: this.caption,

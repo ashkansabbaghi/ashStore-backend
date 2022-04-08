@@ -1,6 +1,7 @@
 const { update } = require("../db/models/Product.models");
 const Product = require("../db/models/Product.models");
 const Tag = require("../db/models/Tag.models");
+const slugify = require("slugify")
 
 // promise function
 
@@ -22,7 +23,8 @@ const getAllTags = (req, res, next) => {
 
 const createTags = (req, res, next) => {
   const title = req.body.title;
-  const slug = title.replace(/\s*-\s*/g, "-").replace(/[^-\w]+/g, "_");
+  // const slug = title.replace(/\s*-\s*/g, "-").replace(/[^-\w]+/g, "_");
+  const slug = slugify(req.body.title);
   Tag.create({ title, slug })
     .then((tags) => {
       return res.status(201).json(tags);
@@ -48,11 +50,16 @@ const setTagAndProduct = async (req, res, next) => {
       "-products -__v"
     );
     const tag = await Tag.findById(tagId);
-    // console.log(product.tags);
-    if (!product && !tag)
+    console.log(product, tag);
+    if (!product)
       return res
         .status(500)
-        .json({ error: { status: 500, message: "tag or product not found" } });
+        .json({ error: { status: 500, message: "product not found" } });
+
+    if (!tag)
+      return res
+        .status(500)
+        .json({ error: { status: 500, message: "tag not found" } });
 
     const findTag = product.tags.find((t) => t.toString() === tag.id);
 
@@ -71,7 +78,6 @@ const setTagAndProduct = async (req, res, next) => {
           message: "You can not use more than 5 tags",
         },
       }); // check length 5 tag in product
-
     product.tags.push(tag.id);
     tag.products.push(product.id);
 
@@ -205,37 +211,6 @@ const getListTagsInProducts = async (req, res, next) => {
       .json({ error: { status: 500, message: "tags not found" } });
   }
 };
-
-// const deleteCommentSelf = async (req, res, next) => {
-//   try {
-//     const valid = await validSelfComment(req.body.commentId, req.user);
-//     if (valid.status === 200) {
-//       Comment.deleteOne({ _id: valid.res }).then((response) => {
-//         Product.findOneAndUpdate({
-//           $pull: { comments: req.body.commentId },
-//         }).then((response) => {
-//           // console.log("response product :", response);
-//           return res.status(valid.status).json({ remove: valid.comment });
-//         });
-//         // console.log("response comments", response);
-//       });
-//     } else {
-//       return res.status(valid.status).json({
-//         error: {
-//           status: valid.status,
-//           message: valid.msg,
-//         },
-//       });
-//     }
-//   } catch (e) {
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comment not deleted",
-//       },
-//     });
-//   }
-// };
 
 module.exports = {
   getAllTags,
