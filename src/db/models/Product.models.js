@@ -7,16 +7,18 @@ const arrayLimit = (val) => {
 
 const ProductSchema = new mongoose.Schema(
   {
-    auth: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // one to many
     tags: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tag" }],
       validate: [arrayLimit, "{PATH} exceeds the limit of 5"],
     }, // many to many
-    category: [{ type: mongoose.Schema.Types.ObjectId, ref: "Category" }], // one to many
-    image: { type: mongoose.Schema.Types.ObjectId, ref: "Image" }, //one to many
+    image: [{ type: mongoose.Schema.Types.ObjectId, ref: "Image" }], //one to many
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }], // one to aLot
     property: [], //one to few
     color: [], //one to few
+
+    // ******************************************************************** //
+    category:[ { type: mongoose.Schema.Types.ObjectId, ref: "Category" ,unique: true}], // one to many
+    auth: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // one to many
     // ******************************************************************** //
     hotProduct: { type: Boolean, default: false },
     name: { type: String, unique: true },
