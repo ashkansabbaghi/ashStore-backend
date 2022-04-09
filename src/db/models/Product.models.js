@@ -17,7 +17,11 @@ const ProductSchema = new mongoose.Schema(
     color: [], //one to few
 
     // ******************************************************************** //
-    category:[ { type: mongoose.Schema.Types.ObjectId, ref: "Category" ,unique: true}], // one to many
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      unique: true,
+    }, // one to many
     auth: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // one to many
     // ******************************************************************** //
     hotProduct: { type: Boolean, default: false },
@@ -44,7 +48,5 @@ ProductSchema.methods.itemProductModel = function () {
     endAt: this.endAt,
   };
 };
-
-
 
 module.exports = mongoose.model("Product", ProductSchema);

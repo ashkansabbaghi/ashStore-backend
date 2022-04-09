@@ -17,7 +17,14 @@ const createCategory = async (req, res, next) => {
     const cat = new Category(categoryObj);
     cat.save((err, category) => {
       if (err) return res.status(500).json({ err });
-      if (category) return res.status(201).json({ category });
+      if (category)
+        return res
+          .status(201)
+          .json({
+            status: 201,
+            message: "create category",
+            data: category.itemCategoryModel(),
+          });
     });
   } catch (e) {
     console.log(e);
@@ -33,7 +40,6 @@ const createCategory = async (req, res, next) => {
 const getAllCategory = async (req, res, next) => {
   try {
     const categories = await Category.find();
-    console.log(categories);
     if (!categories)
       return res.status(500).json({
         error: {
@@ -41,9 +47,14 @@ const getAllCategory = async (req, res, next) => {
           message: "categories not found",
         },
       });
+    const isDelete = categories.filter(
+      (category) => category.isDelete === false
+    );
 
-    const categoryList = createParentCategory(categories);
-    return res.status(200).json(categoryList);
+    const categoryList = createParentCategory(isDelete);
+    return res
+      .status(200)
+      .json({ status: 200, message: "get all category", data: categoryList });
   } catch (e) {
     return res.status(500).json({
       error: {
@@ -77,12 +88,16 @@ const updateCategory = async (req, res, next) => {
       { new: true }
     );
     if (updateCategory) {
-      return res.status(200).json(updateCategory);
+      return res.status(200).json({
+        status: 200,
+        message: "update category",
+        data: updateCategory.itemCategoryModel(),
+      });
     } else {
       return res.status(500).json({
         error: {
           status: 500,
-          message: "not found comment",
+          message: "not found category",
         },
       });
     }
@@ -96,15 +111,144 @@ const updateCategory = async (req, res, next) => {
   }
 };
 
-const deleteCategory = async (req, res, next) => {
+const deleteCategory = async (req, res) => {
+  const categoryId = req.body.categoryId;
+  try {
+    const deleteCategory = await Category.findByIdAndUpdate(
+      categoryId,
+      { $set: { isDelete: true } },
+      { new: true }
+    );
+    if (!deleteCategory)
+      return res
+        .status(500)
+        .json({ error: { status: 500, message: "Category  not found" } });
 
-}
+    return res.status(200).json({
+      status: 200,
+      message: "delete category seller",
+      data: deleteCategory.itemCategoryModel(),
+    });
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "Category could not be deleted",
+      },
+    });
+  }
+};
+
+const recoveryCategory = async (req, res) => {
+  const categoryId = req.body.categoryId;
+  try {
+    const recovery = await Category.findByIdAndUpdate(
+      categoryId,
+      { $set: { isDelete: false } },
+      { new: true }
+    );
+    if (!recovery)
+      return res
+        .status(500)
+        .json({ error: { status: 500, message: "Category  not found" } });
+
+    return res.status(200).json({
+      status: 200,
+      message: "recovery category",
+      data: recovery.itemCategoryModel(),
+    });
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "Category could not be recovery",
+      },
+    });
+  }
+};
+
+const deleteCategoryAdmin = async (req, res, next) => {
+  const categoryId = req.body.categoryId;
+  try {
+    const deleteCategory = await Category.findByIdAndDelete(categoryId);
+    if (!deleteCategory)
+      res.status(500).json({
+        error: { status: 500, message: "not found category for delete" },
+      });
+
+    res
+      .status(200)
+      .json({ status: 200, message: "delete category", data: deleteCategory });
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "not delete category",
+      },
+    });
+  }
+};
+
+const setCategoryToProduct = async (req, res) => {
+  const { productId, categoryId } = req.body;
+  try {
+    const category = await Category.findById(categoryId);
+    if (!category)
+      return res.status(500).json({
+        error: { status: 500, message: "category not found" },
+      });
+
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      { $set: { category: categoryId } },
+      { new: true }
+    );
+    if (!product)
+      return res.status(500).json({
+        error: { status: 500, message: "product not found" },
+      });
+
+    return res
+      .status(200)
+      .json({ status: 200, message: "set category to product", data: product });
+  } catch (e) {
+    return res.status(500).json({
+      error: { status: 500, message: "not set category to product" },
+    });
+  }
+};
+
+const unSetCategoryToProduct = async (req, res) => {
+  const { productId } = req.body;
+  try {
+    const product = await Product.findByIdAndUpdate(
+      productId,
+      { $set: { category: null } },
+      { new: true }
+    );
+    if (!product)
+      return res.status(500).json({
+        error: { status: 500, message: "product not found" },
+      });
+
+    return res.status(200).json({
+      status: 200,
+      message: "unset category to product",
+      data: product,
+    });
+  } catch (e) {
+    return res.status(500).json({
+      error: { status: 500, message: "not set category to product" },
+    });
+  }
+};
 
 /* ********************** NOT EXPORT ***************************** */
 
 const createParentCategory = (categories, parentId = null) => {
   const categoryList = [];
   let category;
+
   if (!parentId) {
     category = categories.filter((c) => c.parentId == undefined);
   } else {
@@ -113,140 +257,24 @@ const createParentCategory = (categories, parentId = null) => {
 
   for (let cat of category) {
     categoryList.push({
-      _id: cat._id,
+      categoryId: cat._id,
       title: cat.title,
       slug: cat.slug,
+      createdAt: cat.createdAt,
+      updatedAt: cat.updatedAt,
       children: createParentCategory(categories, cat._id),
     });
   }
   return categoryList;
 };
 
-// const getListProductComment = async (req, res, next) => {
-//   try {
-//     const product = await Product.findById(req.params.id).populate("comments");
-//     const comment = product.comments.map((comment) => {
-//       return comment;
-//     });
-//     return res.status(200).json(comment);
-//   } catch (e) {
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comments not found",
-//       },
-//     });
-//   }
-// };
-
-// const deleteComment = async (req, res, next) => {
-//   // admin for all delete
-//   if (req.user.role == "admin") {
-//     Comment.findByIdAndDelete(req.body.commentId).then((comment) => {
-//       if (comment) {
-//         console.log(comment);
-//         Product.findOneAndUpdate({
-//           $pull: { comments: req.body.commentId },
-//         }).then((product) => {
-//           if (product) {
-//             return res.status(200).json({ remove: comment });
-//           } else {
-//             return res.status(500).json({
-//               error: {
-//                 status: 500,
-//                 message: "not found comment in product",
-//               },
-//             });
-//           }
-//         });
-//       } else {
-//         return res.status(500).json({
-//           error: {
-//             status: 500,
-//             message: "not found comment",
-//           },
-//         });
-//       }
-//     });
-//   } else {
-//     // valid edit comment self
-//     const valid = await validSelfComment(req.body.commentId, req.user);
-//     if (valid.status === 200) {
-//       Comment.deleteOne({ _id: valid.res }).then((response) => {
-//         Product.findOneAndUpdate({
-//           $pull: { comments: req.body.commentId },
-//         }).then((response) => {
-//           // console.log("response product :", response);
-//           return res.status(valid.status).json({ remove: valid.comment });
-//         });
-//         // console.log("response comments", response);
-//       });
-//     } else {
-//       return res.status(valid.status).json({
-//         error: {
-//           status: valid.status,
-//           message: valid.msg,
-//         },
-//       });
-//     }
-//   }
-// };
-
-// // replay
-// const replyComment = async (req, res, next) => {
-//   const { productId, parentId, text, image } = req.body;
-//   const author = {   id: req.user.id, username: req.user.username  }; // create author
-//   const commentFinal = { author, parentId, text, image };
-//   try {
-//     const createComment = await Comment.create(commentFinal);
-//     const product = await Product.findByIdAndUpdate(
-//       productId,
-//       { $push: { comments: createComment.id } },
-//       { new: true, useFindAndModify: false }
-//     );
-//     return res.status(201).json(createComment);
-//   } catch (e) {
-//     console.log(e);
-//     return res.status(500).json({
-//       error: {
-//         status: 500,
-//         message: "comment not created",
-//       },
-//     });
-//   }
-// };
-
-// /*********************** Functions *************************** */
-
-// const validSelfComment = async (commentId, user) => {
-//   // console.log(commentId);
-//   const comment = await Comment.findById(commentId);
-//   if (comment) {
-//     // console.log("validSelfComment :", user, comment, commentId);
-//     if (user.id === comment.author.id) {
-//       return { status: 200, res: commentId, comment: comment };
-//     } else {
-//       return {
-//         status: 500,
-//         msg: "You are not allowed to delete this comment",
-//       };
-//     }
-//   } else {
-//     return {
-//       status: 500,
-//       msg: "not Found comment",
-//     };
-//   }
-// };
-
 module.exports = {
   getAllCategory,
   createCategory,
   updateCategory,
   deleteCategory,
-  // createComment,
-  // getListProductComment,
-  // updateComment,
-  // deleteComment,
-  // replyComment,
+  deleteCategoryAdmin,
+  recoveryCategory,
+  setCategoryToProduct,
+  unSetCategoryToProduct,
 };
