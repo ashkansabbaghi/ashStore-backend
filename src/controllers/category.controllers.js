@@ -1,4 +1,3 @@
-const Comment = require("../db/models/Comment.models");
 const Product = require("../db/models/Product.models");
 const Category = require("../db/models/Category.models");
 const slugify = require("slugify");
@@ -47,11 +46,11 @@ const getAllCategory = async (req, res, next) => {
           message: "categories not found",
         },
       });
-    const isDelete = categories.filter(
+    const checkDeleteSeller = categories.filter(
       (category) => category.isDelete === false
     );
 
-    const categoryList = createParentCategory(isDelete);
+    const categoryList = createParentCategory(checkDeleteSeller);
     return res
       .status(200)
       .json({ status: 200, message: "get all category", data: categoryList });

@@ -40,11 +40,14 @@ const createComment = async (req, res, next) => {
 
 const getListProductComment = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate("comments");
-    const comment = product.comments.map((comment) => {
-      return comment;
+    const product = await Product.findById(req.body.productId).populate(
+      "comments"
+    );
+    const comments = product.comments.filter((comment) => {
+      return comment.commentStatus === "approved";
     });
-    return res.status(200).json(comment);
+    const listComments = createParentComments(comments);
+    return res.status(200).json(listComments);
   } catch (e) {
     return res.status(500).json({
       error: {
@@ -116,6 +119,51 @@ const updateComment = async (req, res, next) => {
 };
 
 const deleteComment = async (req, res, next) => {
+  const valid = await validSelfComment(req.body.commentId, req.user);
+  if (req.user.isAdmin) {
+    const commentId = req.body.commentId;
+    Comment.findByIdAndUpdate(
+      commentId,
+      { $set: { commentStatus: "deleted" } },
+      { new: true }
+    ).then((resComment) => {
+      Product.findOneAndUpdate({
+        $pull: { comments: req.body.commentId },
+      }).then((response) => {
+        return res.status(200).json({
+          status: 200,
+          message: "remove comment",
+          data: resComment.itemCommentModel(),
+        });
+      });
+    });
+  } else if (valid.status === 200) {
+    Comment.findByIdAndUpdate(
+      valid.res,
+      { $set: { commentStatus: "deleted" } },
+      { new: true }
+    ).then((response) => {
+      Product.findOneAndUpdate({
+        $pull: { comments: req.body.commentId },
+      }).then((response) => {
+        return res.status(valid.status).json({
+          status: 200,
+          message: "remove comment",
+          data: valid.comment,
+        });
+      });
+    });
+  } else {
+    return res.status(valid.status).json({
+      error: {
+        status: valid.status,
+        message: valid.msg,
+      },
+    });
+  }
+};
+
+const deleteCommentAdmin = async (req, res, next) => {
   // admin for all delete
   if (req.user.role == "admin") {
     Comment.findByIdAndDelete(req.body.commentId).then((comment) => {
@@ -171,7 +219,7 @@ const deleteComment = async (req, res, next) => {
 // replay
 const replyComment = async (req, res, next) => {
   const { productId, parentId, text, image } = req.body;
-  const author = {   id: req.user.id, username: req.user.username  }; // create author
+  const author = { id: req.user.id, username: req.user.username }; // create author
   const commentFinal = { author, parentId, text, image };
   try {
     const createComment = await Comment.create(commentFinal);
@@ -194,11 +242,35 @@ const replyComment = async (req, res, next) => {
 
 /*********************** Functions *************************** */
 
+const createParentComments = (comments, parentId = null) => {
+  const commentList = [];
+  let comment;
+
+  if (!parentId) {
+    comment = comments.filter((c) => c.parentId == undefined);
+  } else {
+    comment = comments.filter((c) => c.parentId == parentId);
+  }
+
+  for (let com of comment) {
+    commentList.push({
+      commentId: com._id,
+      author: com.author,
+      text: com.text,
+      image: com.image,
+      product: com.product,
+
+      createdAt: com.createdAt,
+      updatedAt: com.updatedAt,
+      reply: createParentComments(comments, com._id),
+    });
+  }
+  return commentList;
+};
+
 const validSelfComment = async (commentId, user) => {
-  // console.log(commentId);
   const comment = await Comment.findById(commentId);
   if (comment) {
-    // console.log("validSelfComment :", user, comment, commentId);
     if (user.id === comment.author.id) {
       return { status: 200, res: commentId, comment: comment };
     } else {
@@ -220,6 +292,7 @@ module.exports = {
   createComment,
   getListProductComment,
   updateComment,
-  deleteComment,
   replyComment,
+  deleteCommentAdmin,
+  deleteComment,
 };
