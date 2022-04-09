@@ -3,16 +3,16 @@ const mongoose = require("mongoose");
 const CommentSchema = new mongoose.Schema(
   {
     product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+    parentId: { type: String },
     /**************************************************************** */
     author: { id: { type: String }, username: { type: String } },
     text: { type: String },
     image: { type: String },
     commentStatus: {
       type: String,
-      enum: ["pending", "approved"],
+      enum: ["pending", "approved","deleted"],
       default: "approved",
     },
-    parentId : { type: mongoose.Schema.Types.ObjectId, ref: 'Comment' },
   },
   { timestamps: true }
 );
@@ -22,6 +22,7 @@ CommentSchema.methods.itemCommentModel = function () {
     author: this.author,
     text: this.text,
     image: this.image,
+    product: this.product,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

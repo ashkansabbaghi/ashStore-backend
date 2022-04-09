@@ -15,15 +15,22 @@ router
   .get(verifyToken, verifyAdmin, Controllers.Comment.getAllComments) // verify (admin)
   .post(verifyToken, Controllers.Comment.createComment)
   .put(verifyToken, Controllers.Comment.updateComment) //comment all update
-  .delete(verifyToken, Controllers.Comment.deleteComment); //  comment all delete
+  .delete(verifyToken,Controllers.Comment.deleteComment); //  user
+
 
 router
   .route("/reply")
   .post(verifyToken, Controllers.Comment.replyComment); //  comment reply
 
 router
-  .route("/:id")
-  .get(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
+  .route("/product")
+  .post(verifyToken, Controllers.Comment.getListProductComment); // get comments from product
+
+router
+  .route("/delete")
+  .delete(verifyToken,verifyAdmin ,Controllers.Comment.deleteCommentAdmin); //  (admin)
+
+
 
 
 module.exports = router;
