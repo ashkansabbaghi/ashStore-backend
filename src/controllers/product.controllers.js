@@ -34,20 +34,29 @@ const getSingleProduct = async (req, res, next) => {
 };
 
 const createProduct = async (req, res, next) => {
-  const { ...params } = req.body;
-  const userId = req.user.id;
+  // const { ...params } = req.body;
+  const productObj = req.body;
+  productObj.auth = req.user.id;
   try {
-    const newProduct = await Product.create({ ...params });
-    const auth = await AddProductToUser(userId, newProduct); // auth
-    const product = await Product.findById(newProduct.id);
-    return res.status(201).json({ product });
+    const newProduct = await Product.create(productObj);
+    if (!newProduct)
+      return res.status(500).send({
+        error: { status: 500, message: "product not created" },
+      });
+
+    const auth = await AddProductToUser(req.user.id, newProduct); // auth
+    if (!auth)
+      return res.status(500).send({
+        error: { status: 500, message: "product not add to user" },
+      });
+
+    return res
+      .status(201)
+      .json({ status: true, products: newProduct.itemProductModel() });
   } catch (e) {
     console.log(e);
     return res.status(500).send({
-      error: {
-        status: 500,
-        message: "product not made",
-      },
+      error: { status: 500, message: "product not made" },
     });
   }
 };
