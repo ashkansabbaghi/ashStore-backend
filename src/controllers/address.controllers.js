@@ -34,9 +34,11 @@ const getListUserAddress = async (req, res, next) => {
 };
 
 const addAddress = async (req, res, next) => {
-  const { userId, ...address } = req.body;
+  const addressObj =  req.body
+  addressObj.user = req.user.id
+  console.log(addressObj);
   try {
-    const createAddress = await CreateAddress(address);
+    const createAddress = await CreateAddress(addressObj);
     const user = await AddUserToAddress(req.body.userId, createAddress.id);
     return res.status(201).json(createAddress.itemAddressModel());
   } catch (e) {
@@ -87,8 +89,8 @@ const deleteAddress = async (req, res, next) => {
 
 /* ************************* Not Exports *************************** */
 
-const CreateAddress = async (address) => {
-  return Address.create(address).then((docAddress) => {
+const CreateAddress = async (addressObj) => {
+  return Address.create(addressObj).then((docAddress) => {
     return docAddress;
   });
 };

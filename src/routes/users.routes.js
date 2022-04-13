@@ -41,5 +41,21 @@ router
   .route("/address/user")
   .get(verifyToken, Controllers.Address.getListUserAddress);
 
+// cart
+router
+  .route("/cart/admin")
+  .get(verifyToken, verifyAdmin, Controllers.Cart.getAllCart); //admin
+
+router
+  .route("/cart")
+  .get(verifyToken, Controllers.Cart.getCartUser)
+  .post(verifyToken, Controllers.Cart.addItemToCart)
+  .delete(verifyToken, Controllers.Cart.removeItemInCart)
+
+router
+  .route("/cart/address")
+  .post(verifyToken, Controllers.Cart.addAddressToCart);
+
+router.route("/order").post(verifyToken, Controllers.Cart.getOrderStatusSeller);
 
 module.exports = router;

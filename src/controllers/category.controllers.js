@@ -10,7 +10,7 @@ const createCategory = async (req, res, next) => {
       const parent = await Category.findById(req.body.parentId);
       if (!parent)
         return res.status(500).json({
-          error: { status: 500, message: "parentId not found" },
+          error: { status: false, message: "parentId not found" },
         });
     }
     const cat = new Category(categoryObj);
@@ -20,7 +20,7 @@ const createCategory = async (req, res, next) => {
         return res
           .status(201)
           .json({
-            status: 201,
+            status: true,
             message: "create category",
             data: category.itemCategoryModel(),
           });
@@ -29,7 +29,7 @@ const createCategory = async (req, res, next) => {
     console.log(e);
     return res.status(500).json({
       error: {
-        status: 500,
+        status: false,
         message: "category not created",
       },
     });
@@ -42,7 +42,7 @@ const getAllCategory = async (req, res, next) => {
     if (!categories)
       return res.status(500).json({
         error: {
-          status: 500,
+          status: false,
           message: "categories not found",
         },
       });
@@ -53,11 +53,11 @@ const getAllCategory = async (req, res, next) => {
     const categoryList = createParentCategory(checkDeleteSeller);
     return res
       .status(200)
-      .json({ status: 200, message: "get all category", data: categoryList });
+      .json({ status: true, message: "get all category", data: categoryList });
   } catch (e) {
     return res.status(500).json({
       error: {
-        status: 500,
+        status: false,
         message: "error sending category",
       },
     });
@@ -73,12 +73,12 @@ const updateCategory = async (req, res, next) => {
 
       if (!parent)
         return res.status(500).json({
-          error: { status: 500, message: "parentId not found" },
+          error: { status: false, message: "parentId not found" },
         });
 
       if (req.body.parentId === req.body.categoryId)
         return res.status(500).json({
-          error: { status: 500, message: "A parent cannot be a child" },
+          error: { status: false, message: "A parent cannot be a child" },
         });
     }
     const updateCategory = await Category.findByIdAndUpdate(
@@ -88,14 +88,14 @@ const updateCategory = async (req, res, next) => {
     );
     if (updateCategory) {
       return res.status(200).json({
-        status: 200,
+        status: true,
         message: "update category",
         data: updateCategory.itemCategoryModel(),
       });
     } else {
       return res.status(500).json({
         error: {
-          status: 500,
+          status: false,
           message: "not found category",
         },
       });
@@ -103,7 +103,7 @@ const updateCategory = async (req, res, next) => {
   } catch (e) {
     return res.status(500).json({
       error: {
-        status: 500,
+        status: false,
         message: "comment not updated",
       },
     });
@@ -121,17 +121,17 @@ const deleteCategory = async (req, res) => {
     if (!deleteCategory)
       return res
         .status(500)
-        .json({ error: { status: 500, message: "Category  not found" } });
+        .json({ error: { status: false, message: "Category  not found" } });
 
     return res.status(200).json({
-      status: 200,
+      status: true,
       message: "delete category seller",
       data: deleteCategory.itemCategoryModel(),
     });
   } catch (e) {
     return res.status(500).json({
       error: {
-        status: 500,
+        status: false,
         message: "Category could not be deleted",
       },
     });
@@ -149,17 +149,17 @@ const recoveryCategory = async (req, res) => {
     if (!recovery)
       return res
         .status(500)
-        .json({ error: { status: 500, message: "Category  not found" } });
+        .json({ error: { status: false, message: "Category  not found" } });
 
     return res.status(200).json({
-      status: 200,
+      status: true,
       message: "recovery category",
       data: recovery.itemCategoryModel(),
     });
   } catch (e) {
     return res.status(500).json({
       error: {
-        status: 500,
+        status: false,
         message: "Category could not be recovery",
       },
     });
@@ -172,16 +172,16 @@ const deleteCategoryAdmin = async (req, res, next) => {
     const deleteCategory = await Category.findByIdAndDelete(categoryId);
     if (!deleteCategory)
       res.status(500).json({
-        error: { status: 500, message: "not found category for delete" },
+        error: { status: false, message: "not found category for delete" },
       });
 
     res
       .status(200)
-      .json({ status: 200, message: "delete category", data: deleteCategory });
+      .json({ status: true, message: "delete category", data: deleteCategory });
   } catch (e) {
     return res.status(500).json({
       error: {
-        status: 500,
+        status: false,
         message: "not delete category",
       },
     });
@@ -194,7 +194,7 @@ const setCategoryToProduct = async (req, res) => {
     const category = await Category.findById(categoryId);
     if (!category)
       return res.status(500).json({
-        error: { status: 500, message: "category not found" },
+        error: { status: false, message: "category not found" },
       });
 
     const product = await Product.findByIdAndUpdate(
@@ -204,15 +204,15 @@ const setCategoryToProduct = async (req, res) => {
     );
     if (!product)
       return res.status(500).json({
-        error: { status: 500, message: "product not found" },
+        error: { status: false, message: "product not found" },
       });
 
     return res
       .status(200)
-      .json({ status: 200, message: "set category to product", data: product });
+      .json({ status: true, message: "set category to product", data: product });
   } catch (e) {
     return res.status(500).json({
-      error: { status: 500, message: "not set category to product" },
+      error: { status: false, message: "not set category to product" },
     });
   }
 };
@@ -227,17 +227,17 @@ const unSetCategoryToProduct = async (req, res) => {
     );
     if (!product)
       return res.status(500).json({
-        error: { status: 500, message: "product not found" },
+        error: { status: false, message: "product not found" },
       });
 
     return res.status(200).json({
-      status: 200,
+      status: true,
       message: "unset category to product",
       data: product,
     });
   } catch (e) {
     return res.status(500).json({
-      error: { status: 500, message: "not set category to product" },
+      error: { status: false, message: "not set category to product" },
     });
   }
 };
