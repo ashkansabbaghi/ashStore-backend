@@ -15,7 +15,6 @@ const addItemToCart = async (req, res, next) => {
       .json({ error: { status: false, message: "product not found" } });
 
   objProduct.price = product.price;
-  console.log(product);
   // add Order
   const order = new Order({ auth: product.auth, item: objProduct });
   if (!order)
@@ -84,11 +83,19 @@ const getCartUser = async (req, res, next) => {
         .status(500)
         .json({ error: { status: false, message: "not found cart" } });
     // update product
-    const update = await updateAnyCart(cart);
+    const { update, totalPrice, totalDeliveryCost } = await updateAnyCart(cart);
     if (!update.length > 0)
       return res
         .status(500)
         .json({ error: { status: false, message: "not update list" } });
+    //  update totals
+    if (totalPrice || totalDeliveryCost) {
+      console.log("update totals");
+      const updateTotals = await cart.update(
+        { $set: { totalPrice, totalDeliveryCost } },
+        { new: true }
+      );
+    }
 
     // refresh cart
     const refreshCart = await Cart.findOne({ user: userId }).populate("orders");
@@ -113,11 +120,24 @@ const getAllCart = async (req, res, next) => {
 
     for (var i = 0; i < listCart.length; i++) {
       const cart = listCart[i];
-      const update = await updateAnyCart(cart);
+      // const update = await updateAnyCart(cart);
+      const { update, totalPrice, totalDeliveryCost } = await updateAnyCart(
+        cart
+      );
+
       if (!update)
         return res
           .status(500)
           .json({ error: { status: false, message: "not update" } });
+
+      //  update totals
+      if (totalPrice || totalDeliveryCost) {
+        console.log("update totals");
+        const updateTotals = await cart.update(
+          { $set: { totalPrice, totalDeliveryCost } },
+          { new: true }
+        );
+      }
     }
     // refresh cart
     const refreshCart = await Cart.find().populate("orders");
@@ -184,9 +204,7 @@ const removeItemInCart = async (req, res) => {
 
     if (!cart.orders.length > 0) {
       cart.remove({ id: cart.id });
-      return res
-        .status(200)
-        .json({ status: true, message: "remove cart", });
+      return res.status(200).json({ status: true, message: "remove cart" });
     }
 
     return res
@@ -227,21 +245,30 @@ const getOrderStatusSeller = async (req, res) => {
 /* ******************** NOT EXPORTS *********************** */
 const updateAnyCart = async (cart) => {
   const update = [];
+  let totalPrice = 0;
+  let totalDeliveryCost = 0;
   for (var i = 0; i < cart.orders.length; i++) {
     const product = await Product.findById(cart.orders[i].item.product);
     if (!product)
       return res
         .status(500)
         .json({ error: { status: false, message: "not found product" } });
-    // console.log(cart.orders[i].id);
+
     const updatePrice = await Order.findByIdAndUpdate(
       cart.orders[i].id,
       { "item.price": product.price },
       { new: true }
     );
+    // total product
+    totalPrice += cart.orders[i].item.price;
+
+    // total deliveryCost
+    totalDeliveryCost += cart.orders[i].deliveryCost;
+    console.log(totalPrice, totalDeliveryCost);
+
     update.push(updatePrice);
   }
-  return update;
+  return { update, totalPrice, totalDeliveryCost };
 };
 
 module.exports = {
