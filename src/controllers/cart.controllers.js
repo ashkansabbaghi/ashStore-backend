@@ -4,6 +4,7 @@ const Cart = require("../db/models/Cart.models");
 const Order = require("../db/models/Order.models");
 const Address = require("../db/models/Address.models");
 
+
 const addItemToCart = async (req, res, next) => {
   const productId = req.body.orderItem.product;
   const objProduct = req.body.orderItem;
@@ -181,6 +182,31 @@ const addAddressToCart = async (req, res, next) => {
   }
 };
 
+const editQuantityProduct = async (req, res) => {
+  try {
+    const { orderId, quantity } = req.body;
+
+    const updateQuantity = await Order.findByIdAndUpdate(
+      orderId,
+      { $set: { "item.quantity": quantity } },
+      { new: true }
+    );
+    if (!updateQuantity)
+      return res
+        .status(500)
+        .json({ error: { status: false, message: "quantity not update" } });
+
+    return res.status(200).json({
+      status: true,
+      message: "quantity update",
+      data: updateQuantity,
+    });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ error: { status: false, message: e } });
+  }
+};
+
 const removeItemInCart = async (req, res) => {
   try {
     const orderId = req.body.orderId;
@@ -278,4 +304,5 @@ module.exports = {
   addAddressToCart,
   getOrderStatusSeller,
   removeItemInCart,
+  editQuantityProduct,
 };
