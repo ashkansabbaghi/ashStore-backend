@@ -52,6 +52,9 @@ router
   .post(verifyToken, Controllers.Cart.addItemToCart)
   .delete(verifyToken, Controllers.Cart.removeItemInCart)
 
+  router.route("/cart/quantity")
+  .post(verifyToken, Controllers.Cart.editQuantityProduct);
+
 router
   .route("/cart/address")
   .post(verifyToken, Controllers.Cart.addAddressToCart);
