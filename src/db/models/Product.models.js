@@ -39,6 +39,7 @@ const ProductSchema = new mongoose.Schema(
 
 ProductSchema.methods.itemProductModel = function () {
   return {
+    productId :this._id,
     auth: this.auth,
     tag: this.tag,
     discount: this.discount,

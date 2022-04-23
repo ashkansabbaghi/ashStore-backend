@@ -19,6 +19,7 @@ const CommentSchema = new mongoose.Schema(
 
 CommentSchema.methods.itemCommentModel = function () {
   return {
+    commentId : this._id,
     author: this.author,
     text: this.text,
     image: this.image,
