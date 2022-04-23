@@ -6,6 +6,7 @@ const Comment = require("./comment.controllers");
 const Tag = require("./tag.controllers.js");
 const Category = require("./category.controllers.js");
 const Cart = require("./cart.controllers.js");
+const Blog = require("./blog.controllers");
 module.exports = {
   Products,
   Auth,
@@ -15,4 +16,5 @@ module.exports = {
   Tag,
   Category,
   Cart,
+  Blog,
 };
