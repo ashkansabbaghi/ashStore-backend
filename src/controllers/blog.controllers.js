@@ -5,6 +5,7 @@ const Order = require("../db/models/Order.models");
 const Address = require("../db/models/Address.models");
 const Blog = require("../db/models/Blog.models");
 const Image = require("../db/models/Image.models");
+const Category = require("../db/models/Category.models");
 
 const slugify = require("slugify");
 const multer = require("multer");
@@ -153,7 +154,63 @@ const deleteImageToBlog = async (req, res) => {
   }
 };
 
+const singleBlog = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.blogId);
+    if (!blog)
+      return res.status(500).json({ status: false, message: "blog not found" });
+
+    return res.status(500).json({
+      status: true,
+      message: "single blog",
+      data: blog.itemBlogModel(),
+    });
+  } catch (e) {
+    return res.status(500).json({ status: false, message: e });
+  }
+};
+
+const updateBlog = async (req, res) => {
+  try {
+    console.log(req.params.blogId);
+    const { category, title, content, published } = req.body;
+
+    if (category) {
+      const cat = await Category.findById(category);
+      if (!cat)
+        return res
+          .status(500)
+          .json({ status: false, message: "category not found" });
+    }
+    const obj = {
+      category,
+      title,
+      slug: slugify(title),
+      content,
+      published,
+    };
+
+    const update = await Blog.findByIdAndUpdate(
+      req.params.blogId,
+      { $set: obj },
+      { new: true }
+    );
+
+    if (!update)
+      return res
+        .status(404)
+        .json({ status: false, message: "update blog not found" });
+
+    return res
+      .status(404)
+      .json({ status: false, message: "update blog", data: update });
+  } catch (e) {
+    return res.status(500).json({ status: false, message: e });
+  }
+};
+
 /* *************************************** */
+
 const ValidImage = (file, alt) => {
   // exist
   if (!file)
@@ -180,4 +237,6 @@ module.exports = {
   addBlog,
   addImageToBlog,
   deleteImageToBlog,
+  singleBlog,
+  updateBlog,
 };
