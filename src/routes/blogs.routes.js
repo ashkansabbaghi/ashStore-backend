@@ -21,6 +21,7 @@ router
 
 router
   .route("/upload/")
-  .post(verifyToken, verifySeller,upload.array('file', 3) ,Controllers.Blog.addImageToBlog);
+  .post(verifyToken, verifySeller,upload.array('file', 3) ,Controllers.Blog.addImageToBlog)
+  .delete(verifyToken, verifySeller,Controllers.Blog.deleteImageToBlog)
 
 module.exports = router;

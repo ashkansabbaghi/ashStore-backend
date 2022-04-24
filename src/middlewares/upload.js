@@ -2,11 +2,19 @@ const multer = require("multer");
 const { GridFsStorage } = require("multer-gridfs-storage");
 
 const storage = multer.diskStorage({
-  destination: "upload",
+  destination: "public/upload",
   filename: (req, file, cd) => {
     const match = ["image/png", "image/jpeg"];
     if (match.indexOf(file.mimetype) === 1) {
-      cd(null, `${Date.now()}-ashStore-${file.originalname}`);
+      // console.log(
+      //   Date.toLocaleDateString("fa-IR", {
+      //     weekday: "long",
+      //     year: "numeric",
+      //     month: "long",
+      //     day: "numeric",
+      //   })
+      // );
+      cd(null, `${Date.now()}.${req.user.username}.${file.originalname}`);
     } else {
       return {
         bucketName: "photos",

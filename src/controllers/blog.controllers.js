@@ -68,12 +68,13 @@ const addImageToBlog = async (req, res, next) => {
   const valid = ValidImage(file, alt);
   if (valid)
     return res.status(valid.status).json({ status: false, message: valid.msg });
-
+  console.log(file.filename);
+  var img = path.join("./public/upload/" + file.filename);
   var final_img = {
     alt,
     image: {
       contentType: file.mimetype,
-      data: fs.readFileSync(path.join("./upload/" + file.filename)),
+      data: img.toString("base64"),
     },
   };
   try {
@@ -98,6 +99,55 @@ const addImageToBlog = async (req, res, next) => {
     return res
       .status(200)
       .json({ status: true, message: "success", data: upImage });
+  } catch (e) {
+    return res.status(500).json({ status: false, message: e });
+  }
+};
+
+const deleteImageToBlog = async (req, res) => {
+  try {
+    // find image
+    console.log(req.body.imageId);
+    const image = await Image.findById(req.body.imageId);
+    if (!image)
+      return res
+        .status(500)
+        .json({ status: false, message: "image not found" });
+
+    console.log("find image", image.image.data);
+
+    // delete id image to blog
+    const imgToBlog = await Blog.findByIdAndUpdate(
+      req.body.blogId,
+      { $pull: { image: req.body.imageId } },
+      { new: true }
+    );
+    if (!imgToBlog)
+      return res
+        .status(500)
+        .json({ status: false, message: "image not delete in blog" });
+
+    console.log("delete id image to blog");
+
+    // delete image
+    const removeImage = await image.remove();
+    if (!removeImage)
+      return res
+        .status(500)
+        .json({ status: false, message: "image not delete in blog" });
+
+    console.log("delete image");
+
+    // delete local image
+    fs.unlink(image.image.data, (err) => {
+      if (err) {
+        console.log("failed to delete local image:" + err);
+      } else {
+        return res
+          .status(500)
+          .json({ status: false, message: "successful remove image" });
+      }
+    });
   } catch (e) {
     return res.status(500).json({ status: false, message: e });
   }
@@ -129,4 +179,5 @@ module.exports = {
   getAllBlogs,
   addBlog,
   addImageToBlog,
+  deleteImageToBlog,
 };
