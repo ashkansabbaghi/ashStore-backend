@@ -17,7 +17,12 @@ const upload = require("../middlewares/upload");
 router
   .route("/")
   .get(Controllers.Blog.getAllBlogs) //verify admin
-  .post(verifyToken, verifySeller, Controllers.Blog.addBlog);
+  .post(verifyToken, verifySeller, Controllers.Blog.addBlog)
+
+  router
+  .route("/:blogId")
+  .get(verifyToken , verifySeller, Controllers.Blog.singleBlog)
+  .put(verifyToken , verifySeller, Controllers.Blog.updateBlog)
 
 router
   .route("/upload/")
