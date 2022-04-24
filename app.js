@@ -11,6 +11,7 @@ const MongoDB = require("./src/db/connections/mongodb");
 if (process.env.ENV === "development") {
   app.use(logger("dev"));
 }
+app.use(express.static('public'));
 app.use(express.json()); // before routes
 
 app.use("/api/v1", require("./src/routes/api.routes"));

@@ -41,6 +41,7 @@ BlogSchema.methods.itemBlogModel = function () {
     auth: this.auth,
     title: this.title,
     content: this.content,
+    image : this.image,
     slug: this.slug,
     comments: this.comments,
     category: this.category,
