@@ -1,8 +1,3 @@
-const Product = require("../db/models/Product.models");
-const User = require("../db/models/User.models");
-const Cart = require("../db/models/Cart.models");
-const Order = require("../db/models/Order.models");
-const Address = require("../db/models/Address.models");
 const Blog = require("../db/models/Blog.models");
 const Image = require("../db/models/Image.models");
 const Category = require("../db/models/Category.models");
@@ -62,7 +57,6 @@ const addBlog = async (req, res) => {
 };
 
 const deleteBlog = async (req, res) => {
-  console.log("find and delete image ");
   // find images
   try {
     const blog = await Blog.findById(req.body.blogId);
@@ -72,29 +66,30 @@ const deleteBlog = async (req, res) => {
     if (blog.image.length > 0) {
       for (var i = 0; i < blog.image.length; i++) {
         console.log(blog.image[i]);
-        const image = await Image.findByIdAndRemove(blog.image[i]);
-        if (!image)
-          return res.status(500).json({
-            status: false,
-            message: `image ${blog.image[i]} not found`,
-          });
+        const remove = RemoveImage(blog.image[i]);
+        if (!remove)
+          return res
+            .status(remove.status)
+            .json({ status: false, message: remove.message });
       }
     }
+    const removeBlog = blog.remove();
+    if (!removeBlog)
+      return res.status(500).json({
+        status: false,
+        message: "The blog could not be removed",
 
-    const remove = blog.remove();
-    if (!remove)
-      return res
-        .status(200)
-        .json({ status: false, message: "remove not found" });
+      });
 
-    return res
-      .status(200)
-      .json({ status: true, message: "remove", data: blog.itemBlogModel() });
+    return res.status(200).json({
+      status: true,
+      message: "successful removed",
+      data: blog.itemBlogModel(),
+    });
   } catch (e) {
     console.log(e);
     return res.status(200).json({ status: false, message: e });
   }
-
 };
 
 const addImageToBlog = async (req, res, next) => {
@@ -143,48 +138,45 @@ const addImageToBlog = async (req, res, next) => {
 
 const deleteImageToBlog = async (req, res) => {
   try {
-    // find image
-    console.log(req.body.imageId);
-    const image = await Image.findById(req.body.imageId);
-    if (!image)
-      return res
-        .status(500)
-        .json({ status: false, message: "image not found" });
+    const blog = await Blog.findById(req.body.blogId);
+    if (!blog)
+      res.status(200).json({ status: false, message: "blog not found" });
 
-    console.log("find image", image.image.data);
+    console.log(blog.image);
+    if (!(blog.image.length > 0)) {
+      return res.status(500).json({
+        status: false,
+        message: "image not found in the blog",
+      });
+    }
+    const imageInBlog = blog.image.find((id) => id == req.body.imageId);
+    console.log(imageInBlog);
+    if (!imageInBlog)
+      return res.status(500).json({
+        status: false,
+        message: "This image does not exist on the blog",
+      });
 
     // delete id image to blog
-    const imgToBlog = await Blog.findByIdAndUpdate(
-      req.body.blogId,
+    const deleteImgToBlog = await blog.updateOne(
       { $pull: { image: req.body.imageId } },
       { new: true }
     );
-    if (!imgToBlog)
+    if (!deleteImgToBlog)
       return res
         .status(500)
         .json({ status: false, message: "image not delete in blog" });
 
-    console.log("delete id image to blog");
-
-    // delete image
-    const removeImage = await image.remove();
-    if (!removeImage)
+    // // delete image
+    const remove = await RemoveImage(imageInBlog);
+    if (remove)
       return res
-        .status(500)
-        .json({ status: false, message: "image not delete in blog" });
+        .status(remove.status)
+        .json({ status: false, message: remove.message });
 
-    console.log("delete image");
-
-    // delete local image
-    fs.unlink(image.image.data, (err) => {
-      if (err) {
-        console.log("failed to delete local image:" + err);
-      } else {
-        return res
-          .status(500)
-          .json({ status: false, message: "successful remove image" });
-      }
-    });
+    return res
+      .status(200)
+      .json({ status: true, message: "successful remove image" });
   } catch (e) {
     return res.status(500).json({ status: false, message: e });
   }
@@ -266,6 +258,25 @@ const ValidImage = (file, alt) => {
       status: 400,
       msg: "File size is less than 3mb",
     };
+};
+
+const RemoveImage = async (imageId) => {
+  // delete image
+  const removeImage = await Image.findByIdAndRemove(imageId);
+  if (!removeImage)
+    return {
+      status: 500,
+      message: "image not delete in blog",
+    };
+
+  // delete local image
+  fs.unlink(removeImage.image.data, (err) => {
+    if (err)
+      return {
+        status: 500,
+        message: `failed to delete local image: ${err}`,
+      };
+  });
 };
 
 module.exports = {
