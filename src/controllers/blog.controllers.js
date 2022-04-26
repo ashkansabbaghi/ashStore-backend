@@ -61,6 +61,42 @@ const addBlog = async (req, res) => {
   }
 };
 
+const deleteBlog = async (req, res) => {
+  console.log("find and delete image ");
+  // find images
+  try {
+    const blog = await Blog.findById(req.body.blogId);
+    if (!blog)
+      return res.status(500).json({ status: false, message: "blog not found" });
+
+    if (blog.image.length > 0) {
+      for (var i = 0; i < blog.image.length; i++) {
+        console.log(blog.image[i]);
+        const image = await Image.findByIdAndRemove(blog.image[i]);
+        if (!image)
+          return res.status(500).json({
+            status: false,
+            message: `image ${blog.image[i]} not found`,
+          });
+      }
+    }
+
+    const remove = blog.remove();
+    if (!remove)
+      return res
+        .status(200)
+        .json({ status: false, message: "remove not found" });
+
+    return res
+      .status(200)
+      .json({ status: true, message: "remove", data: blog.itemBlogModel() });
+  } catch (e) {
+    console.log(e);
+    return res.status(200).json({ status: false, message: e });
+  }
+
+};
+
 const addImageToBlog = async (req, res, next) => {
   const file = req.files[0];
   const blogId = req.body.blogId;
@@ -235,6 +271,7 @@ const ValidImage = (file, alt) => {
 module.exports = {
   getAllBlogs,
   addBlog,
+  deleteBlog,
   addImageToBlog,
   deleteImageToBlog,
   singleBlog,
