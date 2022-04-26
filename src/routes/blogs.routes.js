@@ -18,6 +18,7 @@ router
   .route("/")
   .get(Controllers.Blog.getAllBlogs) //verify admin
   .post(verifyToken, verifySeller, Controllers.Blog.addBlog)
+  .delete(verifyToken, verifySeller, Controllers.Blog.deleteBlog)
 
   router
   .route("/:blogId")
