@@ -2,8 +2,11 @@ const multer = require("multer");
 const { GridFsStorage } = require("multer-gridfs-storage");
 
 const storage = multer.diskStorage({
-  destination: "public/upload",
-  filename: (req, file, cd) => {
+  // destination: "public/upload",
+  destination: (req, file, cb) => {
+    cb(null, "public/img")
+  },
+  filename: (req, file, cb) => {
     const match = ["image/png", "image/jpeg"];
     if (match.indexOf(file.mimetype) === 1) {
       // console.log(
@@ -14,12 +17,14 @@ const storage = multer.diskStorage({
       //     day: "numeric",
       //   })
       // );
-      cd(null, `${Date.now()}.${req.user.username}.${file.originalname}`);
+      cb(null, `${Date.now()}.${req.user.username}.${file.originalname}`);
     } else {
-      return {
-        bucketName: "photos",
-        filename: `${Date.now()}-ashStore-${file.originalname}`,
-      };
+      // return {
+        cb(new Error('just png and jpg files'))
+
+        // bucketName: "photos",
+        // filename: `${Date.now()}-ashStore-${file.originalname}`,
+      // };
     }
   },
 });

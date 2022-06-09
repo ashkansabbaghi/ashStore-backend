@@ -1,13 +1,18 @@
 const router = require("express").Router();
 const Controllers = require("../controllers");
-const { validateResultSchema } = require("../middlewares/validRequestSchema");
+const {
+  validateResultSchema
+} = require("../middlewares/validRequestSchema");
 const {
   verifyToken,
   verifySeller,
   verifyAdmin,
 } = require("../middlewares/verifyToken.middlewares");
+const upload = require("../middlewares/upload");
 
-const { CreateProductSchema } = require("../schema/productSchema");
+const {
+  CreateProductSchema
+} = require("../schema/productSchema");
 
 router
   .route("/")
@@ -22,6 +27,10 @@ router
   .delete(verifySeller, Controllers.Products.removeProduct); // verify seller
 
 router.route("/:id").get(Controllers.Products.getSingleProduct);
+
+// add image
+router.route("/upload").put(verifyToken,verifySeller, upload.array('file', 3), Controllers.Products.addImageToProduct)
+  .delete(verifyToken, verifySeller, Controllers.Products.deleteImageToProduct)
 
 // comment
 router
