@@ -29,7 +29,7 @@ router
 router.route("/:id").get(Controllers.Products.getSingleProduct);
 
 // add image
-router.route("/upload").put(verifyToken,verifySeller, upload.array('file', 3), Controllers.Products.addImageToProduct)
+router.route("/upload").put(verifyToken, verifySeller, upload.array('file', 1), Controllers.Products.addImageToProduct)
   .delete(verifyToken, verifySeller, Controllers.Products.deleteImageToProduct)
 
 // comment
@@ -53,5 +53,10 @@ router
   .route("/tag")
   .get(Controllers.Tag.getAllTags)
   .post(verifyToken, verifySeller, Controllers.Tag.createTags); // verify admin & seller
+
+// product to category
+router
+  .route("/pro-cat")
+  .post(Controllers.Products.getProductsToCategories)
 
 module.exports = router;

@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
       //     day: "numeric",
       //   })
       // );
-      cb(null, `${Date.now()}.${req.user.username}.${file.originalname}`);
+      cb(null, `${req.user.username}-${Date.now()}-${file.originalname}`);
     } else {
       // return {
         cb(new Error('just png and jpg files'))

@@ -26,6 +26,38 @@ const getAllProducts = async (req, res, next) => {
   }
 };
 
+const getProductsToCategories = async (req, res, next) => {
+  try {
+    let catId = req.body.categoryId
+    if (!catId) return res.status(500).json({
+      error: {
+        status: 500,
+        message: "enter categoryId in body",
+      },
+    });
+    // console.log(catId, req.body.categoryId);
+    const listProducts = await Product.find({ category: catId }).populate("image")
+    // console.log(listProducts);
+    if (!listProducts) {
+      return res.status(500).json({
+        error: {
+          status: 500,
+          message: "not found products in category",
+        },
+      });
+    }
+    return res.status(200).json(listProducts);
+
+  } catch (e) {
+    return res.status(500).json({
+      error: {
+        status: 500,
+        message: "error sending products to category",
+      },
+    });
+  }
+}
+
 const getSingleProduct = async (req, res, next) => {
   const {
     id
@@ -96,15 +128,15 @@ const updateProduct = async (req, res) => {
   try {
     const upProduct = await Product.findByIdAndUpdate(
       productId, {
-        $set: {
-          name,
-          desc,
-          price,
-          unit
-        }
-      }, {
-        new: true
+      $set: {
+        name,
+        desc,
+        price,
+        unit
       }
+    }, {
+      new: true
+    }
     );
     return res.status(200).json(upProduct);
   } catch (e) {
@@ -134,7 +166,7 @@ const removeProduct = (req, res, next) => {
 };
 
 const addImageToProduct = async (req, res, next) => {
-  // console.log( req.files[0]);
+  console.log("addImageToProduct", req.files[0]);
   const productId = req.body.productId;
   let alt = req.body.alt;
   const file = req.files[0];
@@ -146,7 +178,8 @@ const addImageToProduct = async (req, res, next) => {
       message: valid.msg
     });
 
-  var img = path.join("./public/products/" + file.filename);
+  var img = path.join( file.filename)
+  // run :(http://localhost:8080/img/seller-1655293703024-motoc.jpg)
   var final_img = {
     alt,
     image: {
@@ -168,12 +201,12 @@ const addImageToProduct = async (req, res, next) => {
 
     const upImage = await Product.findByIdAndUpdate(
       productId, {
-        $push: {
-          image: newImage.id
-        }
-      }, {
-        new: true
+      $push: {
+        image: newImage.id
       }
+    }, {
+      new: true
+    }
     ).populate("image");
 
     console.log(upImage);
@@ -200,7 +233,7 @@ const addImageToProduct = async (req, res, next) => {
   }
 };
 
-const deleteImageToProduct = async (req, res,next) => {
+const deleteImageToProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.body.productId);
     if (!product)
@@ -309,13 +342,13 @@ const RemoveImage = async (imageId) => {
 const AddProductToUser = (userId, product) => {
   return User.findByIdAndUpdate(
     userId, {
-      $push: {
-        products: product
-      }
-    }, {
-      new: true,
-      useFindAndModify: false
+    $push: {
+      products: product
     }
+  }, {
+    new: true,
+    useFindAndModify: false
+  }
   ).populate("products");
 };
 
@@ -328,11 +361,11 @@ const createCategory = function (category) {
 const addProductToCategory = function (tutorialId, categoryId) {
   return Product.findByIdAndUpdate(
     tutorialId, {
-      category: categoryId
-    }, {
-      new: true,
-      useFindAndModify: false
-    }
+    category: categoryId
+  }, {
+    new: true,
+    useFindAndModify: false
+  }
   );
 };
 
@@ -343,5 +376,6 @@ module.exports = {
   createProduct,
   updateProduct,
   addImageToProduct,
-  deleteImageToProduct
+  deleteImageToProduct,
+  getProductsToCategories
 };
